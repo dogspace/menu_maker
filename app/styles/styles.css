@@ -41,7 +41,6 @@ body {
     margin: 1rem 2rem;
     font-size: 2rem;
     line-height: 2rem;
-    border: 1px solid white;
 }
 
 .settings {
@@ -52,13 +51,13 @@ body {
     margin: 1rem 2rem;
 }
 
-.edit-icon {
+.settings .edit-icon {
     height: 2rem;
     width: 2rem;
     float: left;
 }
 
-.settings-icon {
+.settings .settings-icon {
     height: 2rem;
     width: 2rem;
     float: right;
@@ -77,46 +76,184 @@ body {
 }
 
 .settings-menu {
-    display: block;
+    display: none;
     position: absolute;
     width: 14rem;
     top: 3rem;
     right: 0;
     border-radius: 0.5rem;
     background-color: rgba(0, 0, 0, 0.2);
+    z-index: 2;
 }
 
 .settings-item {
     height: 2rem;
-    line-height: 2rem;
+    line-height: 1.85rem;
     margin: 0.5rem 0.5rem;
     padding-left: 1rem;
+    border: 0.15rem solid rgba(255, 255, 255, 0.2);
     border-radius: 0.5rem;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(0, 0, 0, 0.4);
     cursor: pointer;
 }
 
+.settings-item:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+}
 
 
 
-.table-controls {
+.content {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
     position: absolute;
-    height: 8rem;
+    height: calc(100% - 4rem);
     width: 100%;
     top: 4rem;
     left: 0;
+}
+
+.table-controls {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-evenly;
+    min-height: 8rem;
+    max-height: 16rem;
+    width: 100%;
     border: 1px solid grey;
 }
+
+.group-container,
+.selection-container {
+    position: relative;
+    width: 45%;
+    min-width: 28rem;
+    max-width: 40rem;
+    height: 8rem;
+    flex-grow: 1;
+}
+
+.group-container {
+    border: 1px solid pink;
+}
+
+.group-selector {
+    position: relative;
+    height: 3rem;
+    width: 80%;
+    min-width: 24rem;
+    max-width: 40rem;
+    margin: 2.5rem 10%;
+    background-color: rgb(131, 148, 150);
+    border-radius: 0.2rem;
+    cursor: pointer;
+}
+
+.group-selector::before {
+    content: "";
+    position: absolute;
+    height: 3rem;
+    width: 4rem;
+    right: 0;
+    top: 0;
+    border-radius: 0 0.2rem 0.2rem 0;
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+.group-selector::after {
+    content: "\25BC";
+    position: absolute;
+    height: 3rem;
+    right: 1.25rem;
+    line-height: 3rem;
+    font-size: 1.5rem;
+    top: 0;
+    color: rgba(0, 0, 0, 0.30);
+}
+
+.group-selector div {
+    font-size: 1.2rem;
+    line-height: 3rem;
+    margin-left: 2.7rem;
+    font-weight: 600;
+    color: black;
+}
+
+.group-dropdown {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-around;
+    position: absolute;
+    top:5.5rem;
+    width: 80%;
+    min-width: 24rem;
+    max-width: 40rem;
+    margin: 0 10%;
+    border-radius: 0 0 0.2rem 0.2rem;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.group-item {
+    position: relative;
+    height: 3rem;
+    width: calc(100% - 1rem);
+    margin: 0.5rem 0.5rem;
+    cursor: pointer;
+}
+
+.group-item.active .group-name {
+    background-color: #839496;
+}
+
+.group-item.active .group-name {
+    color: black;
+}
+
+.group-name {
+    position: relative;
+    width: calc(100% - 4rem);
+    font-size: 1.2rem;
+    line-height: 3rem;
+    padding-left: 2rem;
+    font-weight: 600;
+    border-radius: 0.25rem 0 0 0.25rem;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.group-rename {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 3rem;
+    width: 3.5rem;
+    border-radius: 0 0.25rem 0.25rem 0;
+    background-color: #647475;
+}
+
+.group-rename svg {
+    height: 2rem;
+    width: 2rem;
+    margin: 0.5rem 0.75rem;
+    fill: black;
+}
+
+
+.selection-container {
+    border: 1px solid yellow;
+}
+
+
+
 
 
 
 
 .tables {
-    position: absolute;
-    height: calc(100% - 12rem);
+    min-height: calc(100% - 16rem);
+    max-height: calc(100% - 8rem);
     width: 100%;
-    top: 12rem;
-    left: 0;
+    flex-grow: 1;
     border: 1px solid blue;
 }
 

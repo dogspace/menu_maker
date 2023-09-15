@@ -5,11 +5,11 @@ from app.routes.default_session import DEFAULT_SESSION
 from flask import render_template, send_from_directory, session, request, json
 
 
-@app.errorhandler(404)
-@app.errorhandler(500)
-def not_found_error(error):
-    print(f"\n>>>>>>>>>>>>>> ERROR <<<<<<<<<<<<<<<<<<\n{error}\n")
-    return render_template('error.html', error=error)
+# @app.errorhandler(404)
+# @app.errorhandler(500)
+# def not_found_error(error):
+#     print(f"\n>>>>>>>>>>>>>> ERROR <<<<<<<<<<<<<<<<<<\n{error}\n")
+#     return render_template('error.html', error=error)
 
 
 @app.route('/app/styles/<path:name>')
@@ -30,8 +30,8 @@ def index():
     if request.method == 'GET':
         print(">>>>>>>>>>>>>> /GET <<<<<<<<<<<<<<<<<<")
         ## TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP
-        print("!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!!")
-        for key in DEFAULT_SESSION.keys(): session[key] = DEFAULT_SESSION[key]
+        # print("!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!!")
+        # for key in DEFAULT_SESSION.keys(): session[key] = DEFAULT_SESSION[key]
         session.modified = True
         return render_template('index.html', sesssion=session)
         
@@ -42,3 +42,8 @@ def index():
         session['settings'] = json.loads(request.values.get('settings'))
         session.modified = True
         return session
+
+
+if __name__ == "__main__":
+  app.run(debug=True)
+
