@@ -1,0 +1,141 @@
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Old versions of Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none;
+}
+
+body {
+    position: absolute;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #303040;
+}
+
+.header {
+    position: absolute;
+    height: 4rem;
+    width: 100%;
+    top: 0;
+    left: 0;
+    border-bottom: 1px solid red;
+}
+
+.title {
+    position: absolute;
+    height: 2rem;
+    top: 0;
+    left: 0;
+    margin: 1rem 2rem;
+    font-size: 2rem;
+    line-height: 2rem;
+    border: 1px solid white;
+}
+
+.settings {
+    position: absolute;
+    width: 6rem;
+    top: 0;
+    right: 0;
+    margin: 1rem 2rem;
+}
+
+.edit-icon {
+    height: 2rem;
+    width: 2rem;
+    float: left;
+}
+
+.settings-icon {
+    height: 2rem;
+    width: 2rem;
+    float: right;
+}
+
+.settings div svg {
+    height: 2rem;
+    width: 2rem;
+    fill: white;
+    cursor: pointer;
+}
+
+.edit-icon.active svg,
+.settings-icon.active svg {
+    fill: red;
+}
+
+.settings-menu {
+    display: block;
+    position: absolute;
+    width: 14rem;
+    top: 3rem;
+    right: 0;
+    border-radius: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.settings-item {
+    height: 2rem;
+    line-height: 2rem;
+    margin: 0.5rem 0.5rem;
+    padding-left: 1rem;
+    border-radius: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+}
+
+
+
+
+.table-controls {
+    position: absolute;
+    height: 8rem;
+    width: 100%;
+    top: 4rem;
+    left: 0;
+    border: 1px solid grey;
+}
+
+
+
+
+.tables {
+    position: absolute;
+    height: calc(100% - 12rem);
+    width: 100%;
+    top: 12rem;
+    left: 0;
+    border: 1px solid blue;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
