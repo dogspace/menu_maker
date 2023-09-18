@@ -21,7 +21,7 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    background-color: #303040;
+    background-color: #525271;
 }
 
 .header {
@@ -125,16 +125,12 @@ body {
 }
 
 .group-container,
-.selection-container {
+.dish-container {
     position: relative;
-    width: 45%;
-    min-width: 28rem;
+    min-width: 35rem;
     max-width: 40rem;
     height: 8rem;
     flex-grow: 1;
-}
-
-.group-container {
     border: 1px solid pink;
 }
 
@@ -154,18 +150,18 @@ body {
     content: "";
     position: absolute;
     height: 3rem;
-    width: 4rem;
+    width: 4.5rem;
     right: 0;
     top: 0;
     border-radius: 0 0.2rem 0.2rem 0;
-    background-color: rgba(0, 0, 0, 0.25);
+    background-color: rgba(0, 0, 0, 0.2);
 }
 
 .group-selector::after {
     content: "\25BC";
     position: absolute;
     height: 3rem;
-    right: 1.25rem;
+    right: 1.5rem;
     line-height: 3rem;
     font-size: 1.5rem;
     top: 0;
@@ -194,56 +190,149 @@ body {
     background-color: rgba(0, 0, 0, 0.3);
 }
 
-.group-item {
-    position: relative;
-    height: 3rem;
-    width: calc(100% - 1rem);
-    margin: 0.5rem 0.5rem;
-    cursor: pointer;
+.group-dropdown.hidden {
+    display: none;
 }
 
-.group-item.active .group-name {
+.group-item {
+    position: relative;
+    height: 2.5rem;
+    width: calc(100% - 1rem);
+    margin: 0.4rem 0.5rem;
+}
+
+.group-item.active .group-name,
+.group-item.active .group-rename {
+    color: black;
     background-color: #839496;
 }
 
-.group-item.active .group-name {
-    color: black;
+.group-item.A {
+    margin-top: 0.8rem;
+}
+
+.group-item:hover .group-name,
+.group-item:hover .group-rename {
+    background-color: #839496;
 }
 
 .group-name {
     position: relative;
     width: calc(100% - 4rem);
     font-size: 1.2rem;
-    line-height: 3rem;
+    line-height: 2.5rem;
     padding-left: 2rem;
     font-weight: 600;
     border-radius: 0.25rem 0 0 0.25rem;
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgb(131 148 150 / 50%);
+    cursor: pointer;
 }
 
 .group-rename {
     position: absolute;
     top: 0;
     right: 0;
-    height: 3rem;
+    height: 2.5rem;
     width: 3.5rem;
     border-radius: 0 0.25rem 0.25rem 0;
-    background-color: #647475;
+    background-color: rgb(131 148 150 / 50%);
+    cursor: pointer;
 }
 
 .group-rename svg {
-    height: 2rem;
+    height: 1.5rem;
     width: 2rem;
     margin: 0.5rem 0.75rem;
     fill: black;
 }
 
-
-.selection-container {
-    border: 1px solid yellow;
+.group-rename:hover svg {
+    fill: red;
 }
 
 
+
+
+.dish-container {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.dish-container .deselect,
+.dish-container .add {
+    position: relative;
+    height: 3rem;
+    width: 3rem;
+    background-color: rgba(0, 0, 0, 0.25);
+    border-radius: 0.2rem;
+    cursor: pointer;
+}
+
+.deselect svg,
+.add svg {
+    height: 3rem;
+    width: 3rem;
+    padding: 0.2rem;
+    opacity: 80%;
+}
+
+.deselect svg {
+    fill: red;
+}
+
+.add svg {
+    fill: green;
+}
+
+.dish-container .dish {
+    display: flex;
+    flex-flow: column nowrap;
+    position: relative;
+    width: calc(80% - 7rem);
+    margin: 0 0.5rem;
+}
+
+.dish div {
+    overflow: hidden;
+    overflow-y: auto;
+}
+
+.dish .ingredients {
+    height: 3rem;
+    max-height: 3rem;
+    padding: 0.2rem;
+    border-radius: 0.2rem;
+    border: 0.2rem solid #be9164;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.dish .info {
+    height: 0rem;
+    max-height: 3rem;
+    display: none;
+}
+
+.info .dish-number,
+.info .dish-title {
+    height: calc(100% - 0.25rem);
+    margin-bottom: 0.2rem;
+    border-radius: 0.2rem;
+    border: 0.2rem solid #be9164;
+    background-color: rgba(0, 0, 0, 0.5);
+    cursor: text;
+}
+
+.info .dish-number {
+    width: 4rem;
+    float: left;
+}
+
+.info .dish-title {
+    width: calc(100% - 4.5rem);
+    float: right;
+}
 
 
 
