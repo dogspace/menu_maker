@@ -41,7 +41,7 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    background-color: #525271;
+    background-color: #303040;
 }
 
 .header {
@@ -208,7 +208,7 @@ body {
     max-width: 40rem;
     margin: 0 10%;
     border-radius: 0 0 0.2rem 0.2rem;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
 .group-dropdown.hidden {
@@ -245,7 +245,7 @@ body {
     padding-left: 2rem;
     font-weight: 600;
     border-radius: 0.25rem 0 0 0.25rem;
-    background-color: rgb(131 148 150 / 50%);
+    background-color: rgba(131, 148, 150, 60%);
     cursor: pointer;
 }
 
@@ -256,7 +256,7 @@ body {
     height: 2.5rem;
     width: 3.5rem;
     border-radius: 0 0.25rem 0.25rem 0;
-    background-color: rgb(131 148 150 / 50%);
+    background-color: rgba(131, 148, 150, 50%);
     cursor: pointer;
 }
 
@@ -368,11 +368,12 @@ body {
 .table {
     position: absolute;
     display: inline-block;
-    max-height: calc(95% - 2rem);
-    width: 20rem;
-    top: 5%;
+    max-height: calc(100% - 4rem);
+    width: 22rem;
+    top: 2rem;
     margin: 0 2rem;
 }
+
 .table:nth-child(1) {
     left: 0;
 }
@@ -406,28 +407,39 @@ body {
 
 .table-header {
     position: relative;
-    height: 3rem;
+    height: 2.5rem;
     width: 100%;
 }
 
 .table-title {
     position: absolute;
     height: 2.5rem;
-    width: calc(100% - 3rem);
-    margin: 0.25rem 0;
+    width: calc(100% - 2rem);
     top: 0;
     left: 0;
-    background-color: black;
+    font-size: 1.5rem;
+    line-height: 2.5rem;
 }
+
 .table-delete {
     position: absolute;
     height: 2.5rem;
-    width: 2.5rem;
-    margin: 0.25rem 0;
+    width: 2rem;
     top: 0;
     right: 0;
     cursor: pointer;
-    background-color: black;
+}
+
+.table-delete svg {
+    height: 1.75rem;
+    width: 1.75rem;
+    margin: 0.375rem 0;
+    fill: red;
+}
+
+.table-delete.inactive {
+    opacity: 20%;
+    cursor: auto;
 }
 
 .table-body {
@@ -449,8 +461,11 @@ body {
 }
 
 .table-input {
-    top: 0;
-    background-color: rgb(92, 92, 92);
+    background: none;
+    background-color: rgba(255, 255, 255, 0.2);
+    padding-left: 1rem;
+    outline: none;
+    border: none;
 }
 
 .table-items {
@@ -459,16 +474,53 @@ body {
 
 .table-item {
     margin-top: 0.5rem;
-    border: 0.0625rem solid rgb(92, 92, 92);
+    border: 0.0625rem solid rgba(255, 255, 255, 0.25);
     background-color: black;
 }
 
+.table-item:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+}
 
+.item-checkbox {
+    float: left;
+    width: 2rem;
+    height: calc(2rem - 0.125rem);
+    line-height: calc(2rem - 0.125rem);
+    text-align: center;
+    padding: 0.3rem 0;
+}
 
+.circle {
+    display: inline-block;
+    height: 1.2rem;
+    width: 1.2rem;
+    border: 0.2rem solid red;
+    border-radius: 50%;
+    line-height: calc(2rem - 0.125rem);
+}
 
+.item-content {
+    float: right;
+    width: calc(100% - 2rem);
+    height: calc(2rem - 0.125rem);
+    line-height: calc(2rem - 0.3rem);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overflow-wrap: break-word;
+    padding: 0.175rem 0 0 0.2rem;
+    font-size: 1.2rem;
+}
 
+.table-item.selected .circle {
+    background-color: green;
+    border: 0.2rem solid green;
+}
 
-
+.table-item.selected .item-content {
+    opacity: 0.75;
+}
 
 
 
