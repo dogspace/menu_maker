@@ -1,7 +1,7 @@
 
 from . import *
 from app import app
-from app.routes.default_session import DEFAULT_SESSION
+from app.routes.default_session import DEFAULT_SESSION_TESTING
 from flask import render_template, send_from_directory, session, request, json
 
 
@@ -31,7 +31,7 @@ def index():
         print(">>>>>>>>>>>>>> /GET <<<<<<<<<<<<<<<<<<")
         ## TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP
         # print("!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!!")
-        # for key in DEFAULT_SESSION.keys(): session[key] = DEFAULT_SESSION[key]
+        for key in DEFAULT_SESSION_TESTING.keys(): session[key] = DEFAULT_SESSION_TESTING[key]
         session.modified = True
         return render_template('index.html', sesssion=session)
         

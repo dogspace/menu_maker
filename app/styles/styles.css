@@ -50,7 +50,7 @@ body {
     width: 100%;
     top: 0;
     left: 0;
-    border-bottom: 1px solid red;
+    border-bottom: 0.25rem solid rgba(255, 255, 255, 0.5);
     z-index: 10;
 }
 
@@ -142,7 +142,6 @@ body {
     min-height: 8rem;
     max-height: 16rem;
     width: 100%;
-    border: 1px solid grey;
     z-index: 2;
 }
 
@@ -189,7 +188,7 @@ body {
     color: rgba(0, 0, 0, 0.30);
 }
 
-.group-selector div {
+.group-selector .active-group-name {
     font-size: 1.2rem;
     line-height: 3rem;
     margin-left: 2.7rem;
@@ -359,9 +358,9 @@ body {
     max-height: calc(100% - 8rem);
     width: 100%;
     flex-grow: 1;
-    border: 1px solid blue;
     overflow-y: hidden;
     overflow-x: auto;
+    background-color: rgba(0, 0, 0, 0.25);
     z-index: 1;
 }
 
@@ -372,6 +371,10 @@ body {
     width: 22rem;
     top: 2rem;
     margin: 0 2rem;
+}
+
+.table.hidden {
+    display: none;
 }
 
 .table:nth-child(1) {
@@ -415,6 +418,7 @@ body {
     position: absolute;
     height: 2.5rem;
     width: calc(100% - 2rem);
+    padding-left: 1rem;
     top: 0;
     left: 0;
     font-size: 1.5rem;
@@ -438,7 +442,7 @@ body {
 }
 
 .table-delete.inactive {
-    opacity: 20%;
+    opacity: 30%;
     cursor: auto;
 }
 
@@ -527,11 +531,40 @@ body {
 
 
 
+.menu {
+    position: absolute;
+    height: calc(100% - 4rem);
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    z-index: 9;
+    background-color: rgba(167, 151, 131, 0.9);
+    transition: 0.2s;
+}
+
+.menu.hidden {
+    height: 0;
+}
 
 
+.menu-button {
+    position: absolute;
+    height: 8rem;
+    width: 8rem;
+    bottom: 2rem;
+    right: 2rem;
+    background-color: rgb(255, 98, 98);
+    border-radius: 50%;
+    z-index: 10;
+    cursor: pointer;
+}
 
-
-
+.menu-button svg {
+    height: 6rem;
+    width: 6rem;
+    margin: 1rem;
+    fill: #303040;
+}
 
 
 
