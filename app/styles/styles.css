@@ -146,7 +146,7 @@ body {
 }
 
 .group-container,
-.dish-container {
+.dish-build-container {
     position: relative;
     min-width: 35rem;
     max-width: 40rem;
@@ -271,15 +271,15 @@ body {
 }
 
 
-.dish-container {
+.dish-build-container {
     display: flex;
     flex-flow: row nowrap;
     justify-content: center;
     align-items: center;
 }
 
-.dish-container .deselect,
-.dish-container .add {
+.dish-build-container .build-deselect,
+.dish-build-container .build-add {
     position: relative;
     height: 3rem;
     width: 3rem;
@@ -288,23 +288,23 @@ body {
     cursor: pointer;
 }
 
-.deselect svg,
-.add svg {
+.build-deselect svg,
+.build-add svg {
     height: 3rem;
     width: 3rem;
     padding: 0.2rem;
     opacity: 80%;
 }
 
-.deselect svg {
+.build-deselect svg {
     fill: red;
 }
 
-.add svg {
+.build-add svg {
     fill: green;
 }
 
-.dish-container .dish {
+.dish-build-container .dish-build {
     display: flex;
     flex-flow: column nowrap;
     position: relative;
@@ -312,27 +312,38 @@ body {
     margin: 0 0.5rem;
 }
 
-.dish div {
+.build-id,
+.build-title,
+.build-items {
     overflow: hidden;
     overflow-y: auto;
+    padding: 0.5rem;
 }
 
-.dish .ingredients {
+.dish-build .build-items {
     height: 3rem;
     max-height: 3rem;
-    padding: 0.2rem;
     border-radius: 0.2rem;
     border: 0.2rem solid #be9164;
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-.dish .info {
-    height: 0rem;
-    max-height: 3rem;
+.dish-build .build-info {
+    height: 3rem;
+    transition: 0.2s;
 }
 
-.info .dish-number,
-.info .dish-title {
+.build-info.hidden {
+    height: 0rem;
+}
+
+.build-info.hidden input {
+    border: 0;
+    padding: 0;
+}
+
+.build-info .build-id,
+.build-info .build-title {
     height: calc(100% - 0.25rem);
     margin-bottom: 0.2rem;
     border-radius: 0.2rem;
@@ -341,12 +352,12 @@ body {
     cursor: text;
 }
 
-.info .dish-number {
+.build-info .build-id {
     width: 4rem;
     float: left;
 }
 
-.info .dish-title {
+.build-info .build-title {
     width: calc(100% - 4.5rem);
     float: right;
 }
@@ -487,6 +498,15 @@ body {
     cursor: pointer;
 }
 
+.table-item.selected .circle {
+    background-color: green;
+    border: 0.2rem solid green;
+}
+
+.table-item.selected .item-content {
+    opacity: 0.75;
+}
+
 .item-checkbox {
     float: left;
     width: 2rem;
@@ -515,15 +535,6 @@ body {
     overflow-wrap: break-word;
     padding: 0.175rem 0 0 0.2rem;
     font-size: 1.2rem;
-}
-
-.table-item.selected .circle {
-    background-color: green;
-    border: 0.2rem solid green;
-}
-
-.table-item.selected .item-content {
-    opacity: 0.75;
 }
 
 
@@ -612,6 +623,7 @@ body {
     width: 3rem;
     line-height: 2rem;
     opacity: 60%;
+    overflow: hidden;
 }
 
 .dish-title {
@@ -623,7 +635,7 @@ body {
     overflow-y: auto;
 }
 
-.dish-ingredients {
+.dish-items {
     min-height: 2rem;
     max-height: 6rem;
     width: calc(100% - 4rem);
@@ -639,6 +651,7 @@ body {
     right: 0.5rem;
     bottom: 0.5rem;
     width: 2rem;
+    cursor: auto;
 }
 
 .dish-delete svg {
@@ -652,6 +665,9 @@ body {
 
 .dish-delete.inactive {
     opacity: 30%;
+}
+
+.dish-delete.inactive svg {
     cursor: auto;
 }
 
