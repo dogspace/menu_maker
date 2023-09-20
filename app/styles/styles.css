@@ -527,23 +527,132 @@ body {
 }
 
 
-
-
-
-
 .menu {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: center;
     position: absolute;
     height: calc(100% - 4rem);
     width: 100%;
     bottom: 0;
     left: 0;
     z-index: 9;
-    background-color: rgba(167, 151, 131, 0.9);
+    background-color: #0c0b18;
+    opacity: 95%;
     transition: 0.2s;
+    overflow: auto;
 }
 
 .menu.hidden {
     height: 0;
+}
+
+.menu.hidden * {
+    display: none;
+}
+
+.menu-group {
+    display: flex;
+    flex-flow: column nowrap;
+    width: 50%;
+    margin: 3rem 0;
+}
+
+.menu-group.hidden {
+    display: none;
+}
+
+.menu-group.A {
+    margin-top: 8rem;
+}
+
+.menu-group-name {
+    height: 3rem;
+    line-height: 3rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.menu-group-name::after {
+    content: "";
+    display: block;
+    position: relative;
+    height: 0.2rem;
+    border-radius: 0.2rem;
+    background-color: white;
+    opacity: 60%;
+}
+
+.menu-group-dishes {
+    width: 90%;
+    min-height: 4rem;
+    align-self: center;
+}
+
+.menu-dish {
+    position: relative;
+    min-height: 4rem;
+    padding: 0.5rem;
+    margin-top: 1rem;
+    border-radius: 0.25rem;
+}
+
+.menu-dish:hover {
+    background-color: rgba(255, 255, 255, 0.20);
+}
+
+.dish-info {
+    height: 2rem;
+    width: calc(100% - 4rem);
+}
+
+.dish-id {
+    float: left;
+    height: 2rem;
+    width: 3rem;
+    line-height: 2rem;
+    opacity: 60%;
+}
+
+.dish-title {
+    float: right;
+    height: 2rem;
+    width: calc(100% - 4rem);
+    font-size: 1.25rem;
+    line-height: 2rem;
+    overflow-y: auto;
+}
+
+.dish-ingredients {
+    min-height: 2rem;
+    max-height: 6rem;
+    width: calc(100% - 4rem);
+    padding-left: 4rem;
+    line-height: 2rem;
+    opacity: 80%;
+    overflow-y: auto;
+}
+
+.dish-delete {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    width: 2rem;
+}
+
+.dish-delete svg {
+    display: block;
+    height: 100%;
+    width: 2rem;
+    margin: auto;
+    fill: red;
+    cursor: pointer;
+}
+
+.dish-delete.inactive {
+    opacity: 30%;
+    cursor: auto;
 }
 
 
@@ -565,6 +674,7 @@ body {
     margin: 1rem;
     fill: #303040;
 }
+
 
 
 

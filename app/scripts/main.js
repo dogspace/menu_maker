@@ -10,10 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
             'editModeButton': document.querySelector('.edit-icon'),
             'editModeActive': false,
 
-            // Menu
-            'menu': document.querySelector('.menu'),
-            'menuButton': document.querySelector('.menu-button'),
-
             // Group dropdown selector
             'groupSelector': document.querySelector('.group-selector'),
             'groupDropdown': document.querySelector('.group-dropdown'),
@@ -24,6 +20,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Tables
             'tables': document.querySelectorAll('.table'),
 
+
+            // Menu
+            'menu': document.querySelector('.menu'),
+            'menuGroups': document.querySelectorAll('.menu-group'),
+
+            'menuButton': document.querySelector('.menu-button'),
         },
 
         // Site init
@@ -49,16 +51,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Updates site with session data, [[assumes group 1 is set, not saving active group to session]]
         updateWithSessionData: function() {
-            // Update group names in dropdown list
+            // Update group names
             for (let x = 0; x < 5; x++) {
-                let name = s.sessionData.names[x].group
-                s.groupNames[x].innerText = name
+                s.groupNames[x].innerText = s.sessionData.names[x].group
             }
-            // Updates name on dropdown button
+            // Update dropdown button
             s.groupSelector.querySelector('.active-group-name').innerText = s.sessionData.names[0].group
-            // Update table names and items
+            // Update tables
             for (let x = 0; x < 10; x++) {
                 s.tables[x].querySelector('.table-title').innerText = s.sessionData.names[0].tables[x]
+                // Create table items
                 let itemCount = s.sessionData.tables[0][x].length
                 for (let y = 0; y < itemCount; y++) {
                     let newItem = MenuMaker.createTableItemHTML(s.sessionData.tables[0][x][y])
@@ -71,18 +73,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             // Update menu
-            
-
-
+            for (let x = 0; x < 5; x++) {
+                let dishCount = s.sessionData.menu[x].length
+                if (dishCount == 0) { continue }
+                // Unhide group and set title
+                s.menuGroups[x].classList.remove('hidden')
+                s.menuGroups[x].querySelector('.menu-group-name').innerText = s.sessionData.names[x].group
+                // Create dishes
+                let dishContainer = s.menuGroups[x].querySelector('.menu-group-dishes')
+                for (let y = 0; y < dishCount; y++) {
+                    let dish = s.sessionData.menu[x][y]
+                    let ingredients = dish.items.join(', ')
+                    console.log(dish)
+                    let newDish = MenuMaker.createMenuDishHTML(dish.id, dish.name, ingredients)
+                    dishContainer.innerHTML += newDish
+                }
+            }
         },
 
         //
         createTableItemHTML: function(text) {
             return `
-            <div class="table-item">
-                <div class="item-checkbox"><span class="circle"></span></div>
-                <div class="item-content">` + text + `</div>
-            </div>`
+                <div class="table-item">
+                    <div class="item-checkbox"><span class="circle"></span></div>
+                    <div class="item-content">` + text + `</div>
+                </div>`
+        },
+
+        //
+        createMenuDishHTML: function(id, title, ingredients) {
+            return `
+                <div class="menu-dish">
+                    <div class="dish-info">
+                        <div class="dish-id">` + id + `</div>
+                        <div class="dish-title">` + title + `</div>
+                    </div>
+                    <div class="dish-ingredients">` + ingredients + `</div>
+                    <div class="dish-delete inactive">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+                            <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 
+                            56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/>
+                        </svg>
+                    </div>
+                </div>`
         },
 
         //
@@ -150,6 +183,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     item.contentEditable = false
                 })
             }
+        },
+
+        //
+        toggleMenuEditMode: function() {
+            return
+
+
+            
         },
 
         // Check keypresses while in edit mode

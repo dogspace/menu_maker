@@ -62,10 +62,10 @@ DEFAULT_SESSION_TESTING = {
     ],
 
     'menu': [
-        [   {'name': 'Waffles and Bacon', 'number': 'A1', 'items': ['Waffles', 'Bacon']}, 
-            {'name': 'Eggy', 'number': 'A2', 'items': ['Eggs', 'Eggs', 'Hash browns']} ],
-        [   {'name': 'Mango chicken', 'number': 'B1', 'items': ['Grilled chicken', 'Cajun', 'Mango sauce', 'Rice', 'Corn']},
-            {'name': 'Steak and stuff', 'number': 'B2', 'items': ['Ribeye', 'Rice', 'Snow peas']} ],
+        [   {'name': 'Waffles and Bacon', 'id': 'A1', 'items': ['Waffles', 'Bacon']}, 
+            {'name': 'Eggy', 'id': 'A2', 'items': ['Eggs', 'Eggs', 'Hash browns']} ],
+        [   {'name': 'Mango chicken', 'id': 'B1', 'items': ['Grilled chicken', 'Cajun', 'Mango sauce', 'Rice', 'Corn']},
+            {'name': 'Steak and stuff', 'id': 'B2', 'items': ['Ribeye', 'Rice', 'Snow peas']} ],
         [],
         [],
         []
