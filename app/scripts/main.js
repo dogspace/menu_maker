@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'groupItems': document.querySelectorAll('.group-item'),
             'groupNames': document.querySelectorAll('.group-name'),
             'groupRenameButtons': document.querySelectorAll('.group-rename'),
+            'groupOrder': ['A', 'B', 'C', 'D', 'E'],
             // Dish builder
             'buildContainer': document.querySelector('.dish-build-container'),
             'buildInfo': document.querySelector('.build-info'),
@@ -24,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'buildDeselect': document.querySelector('.build-deselect'),
             // Tables
             'tables': document.querySelectorAll('.table'),
+            'tableInputs': document.querySelectorAll('.table-input'),
             'tableItems': document.querySelectorAll('.table-item'),
             // Menu
             'menu': document.querySelector('.menu'),
@@ -49,12 +51,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
             s.groupSelector.addEventListener('click', MenuMaker.toggleGroupDropdown)
             s.groupRenameButtons.forEach(button => { button.addEventListener('click', MenuMaker.renameGroup) })
+            s.groupNames.forEach(group => { group.addEventListener('click', MenuMaker.changeTableGroup) })
 
             s.buildID.addEventListener('keydown', MenuMaker.checkKeypress, true)
             s.buildTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
+            s.buildDeselect.addEventListener('click', MenuMaker.deselectAllItems)
 
             s.tableItems.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
-
+            s.tableInputs.forEach(input => { input.addEventListener('keydown', MenuMaker.checkKeypress, true) })
         },
 
         // Updates site with session data, [[assumes group 1 is set, not saving active group to session]]
@@ -97,6 +101,48 @@ document.addEventListener('DOMContentLoaded', function() {
                     dishContainer.innerHTML += newDish
                 }
             }
+        },
+
+        // Called when changing table group, creates tables based on session.tables[groupIndex]
+        updateTables: function(groupIndex) {
+            s.tableItems.forEach(item => { item.remove() })
+            for (let x = 0; x < 10; x++) {
+                s.tables[x].querySelector('.table-title').innerText = s.sessionData.names[groupIndex].tables[x]
+                // Create table items
+                let itemCount = s.sessionData.tables[groupIndex][x].length
+                for (let y = 0; y < itemCount; y++) {
+                    let newItem = MenuMaker.createTableItemHTML(s.sessionData.tables[groupIndex][x][y])
+                    s.tables[x].querySelector('.table-items').innerHTML += newItem
+                }
+                // Hide or unhide table based on itemCount
+                let tableHidden = s.tables[x].classList.contains('hidden')
+                if ((itemCount && tableHidden) || (!itemCount && !tableHidden)) {
+                    s.tables[x].classList.toggle('hidden')
+                }
+            }
+            s.tableItems = document.querySelectorAll('.table-item')
+            s.tableItems.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
+        },
+
+        // Creates a new table item based on table input field
+        createNewTableItem: function(target) {
+            console.log(">> createNewTableItem")
+            let text = target.value
+            let newItem = MenuMaker.createTableItemHTML(text)
+            let table = target.parentElement.querySelector('.table-items')
+            table.innerHTML += newItem
+            target.value = ''
+            // If item was created with edit mode active, set edit mode styles
+            if (s.editModeActive) {
+                let newElement = table.lastChild
+                let newContent = newElement.querySelector('.item-content')
+                newElement.addEventListener('keydown', MenuMaker.checkKeypress, true)
+                newContent.style.cursor = 'text'
+                newContent.contentEditable = true
+            }
+            // Rebind UI actions for all items in this table
+            let tableItems = table.querySelectorAll('.table-item')
+            tableItems.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
         },
 
         //
@@ -147,6 +193,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
+        // Change active table group, fill in values from session
+        changeTableGroup: function(event) {
+            let newGroup = event.target.closest('.group-item')
+            if (newGroup.classList.contains('active')) { return }
+            let oldGroup = s.groupDropdown.querySelector('.group-item.active')
+            oldGroup.classList.toggle('active')
+            newGroup.classList.toggle('active')
+            let groupIndex = s.groupOrder.indexOf(newGroup.classList[1])
+            MenuMaker.updateTables(groupIndex)
+        },
+
         //
         selectTableItem: function(event) {
             let tableItem = event.target
@@ -155,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             let textBox = tableItem.querySelector('.item-content')
             if (textBox.contains(event.target) && s.editModeActive) { return }
-            //
+            // Only allow one selection per table
             let oldItem = tableItem.parentElement.querySelector('.table-item.selected')
             if (oldItem) {
                 if (oldItem != tableItem) { oldItem.classList.toggle('selected') }
@@ -168,6 +225,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 (!itemSelected && !s.buildInfo.classList.contains('hidden'))) {
                     s.buildInfo.classList.toggle('hidden')
             }
+        },
+
+        // Dish builder deselect button, clear table selecitons and dish builder fields
+        deselectAllItems: function() {
+            let activeItems = document.querySelectorAll('.table-item.selected')
+            activeItems.forEach(item => item.classList.toggle('selected'))
+            s.buildID.value = ''
+            s.buildTitle.value = ''
+            s.buildItems.innerText = ''
         },
 
         //
@@ -184,12 +250,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> toggleEditMode")
             s.editModeButton.classList.toggle('active')
             s.editModeActive = s.editModeButton.classList.contains('active')
-            // Toggle listener to handle key presses
-            if (s.editModeActive) {
-                document.addEventListener('keydown', MenuMaker.checkKeypress, true)
-            } else {
-                document.removeEventListener('keydown', MenuMaker.checkKeypress, true)
-            }
             // Call functions to toggle contentEditable for divs
             MenuMaker.toggleTableEditMode()
             MenuMaker.toggleMenuEditMode()
@@ -202,16 +262,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 let tableTitle = table.querySelector('.table-title')
                 let tableItems = table.querySelectorAll('.item-content')
                 if (s.editModeActive) {
+                    tableTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
                     tableTitle.style.cursor = 'text'
                     tableTitle.contentEditable = true
                     tableItems.forEach(item => {
+                        item.addEventListener('keydown', MenuMaker.checkKeypress, true)
                         item.style.cursor = 'text'
                         item.contentEditable = true
                     })
                 } else {
-                    tableTitle.style.cursor = 'pointer'
+                    tableTitle.removeEventListener('keydown', MenuMaker.checkKeypress, true)
+                    tableTitle.style.cursor = 'default'
                     tableTitle.contentEditable = false
                     tableItems.forEach(item => {
+                        item.removeEventListener('keydown', MenuMaker.checkKeypress, true)
                         item.style.cursor = 'pointer'
                         item.contentEditable = false
                     })
@@ -230,6 +294,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 let dishTitle = dish.querySelector('.dish-title')
                 let dishItems = dish.querySelector('.dish-items')
                 if (s.editModeActive) {
+                    dishID.addEventListener('keydown', MenuMaker.checkKeypress, true)
+                    dishTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
+                    dishItems.addEventListener('keydown', MenuMaker.checkKeypress, true)
                     dishID.style.cursor = 'text'
                     dishTitle.style.cursor = 'text'
                     dishItems.style.cursor = 'text'
@@ -237,6 +304,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     dishTitle.contentEditable = true
                     dishItems.contentEditable = true
                 } else {
+                    dishID.removeEventListener('keydown', MenuMaker.checkKeypress, true)
+                    dishTitle.removeEventListener('keydown', MenuMaker.checkKeypress, true)
+                    dishItems.removeEventListener('keydown', MenuMaker.checkKeypress, true)
                     dishID.style.cursor = 'pointer'
                     dishTitle.style.cursor = 'pointer'
                     dishItems.style.cursor = 'pointer'
@@ -257,6 +327,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.removeEventListener('keypress', MenuMaker.checkKeypress, true)
                 MenuMaker.toggleEditMode()
             } else if (event.key === 'Enter' || event.keyCode == 13) {
+                if (event.target.className == 'table-input') {
+                    MenuMaker.createNewTableItem(event.target)
+                }
                 event.target.blur()
             } else if (event.key === 'Tab' || event.KeyCode == 9) {
                 event.preventDefault()
@@ -271,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 if ((charCount >= 250) ||
                     ((charCount >= 60) && ((elementClass == 'dish-title') || (elementClass == 'build-title'))) ||
-                    ((charCount >= 40) && (elementClass == 'item-content')) ||
+                    ((charCount >= 40) && ((elementClass == 'item-content') || (elementClass == 'table-input'))) ||
                     ((charCount >= 25) && (elementClass == 'table-title')) ||
                     ((charCount >= 4) && ((elementClass == 'dish-id') || (elementClass == 'build-id')))) {
                     event.preventDefault()
@@ -282,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         openMenu: function() {
             s.menu.classList.toggle('hidden')
-        }
+        },
 
 
 
