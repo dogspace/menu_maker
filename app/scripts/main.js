@@ -5,11 +5,13 @@ document.addEventListener('DOMContentLoaded', function() {
         settings: {
             // JS copy of session data, updated and POSTed to Flask
             'sessionData': session,
+            'groupIndex': 0,
             // Edit mode
             'editModeButton': document.querySelector('.edit-icon'),
             'editModeActive': false,
             // Group dropdown selector
             'groupSelector': document.querySelector('.group-selector'),
+            'groupSelectorName': document.querySelector('.active-group-name'),
             'groupDropdown': document.querySelector('.group-dropdown'),
             'groupItems': document.querySelectorAll('.group-item'),
             'groupNames': document.querySelectorAll('.group-name'),
@@ -26,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Tables
             'tables': document.querySelectorAll('.table'),
             'tableInputs': document.querySelectorAll('.table-input'),
-            'tableItems': document.querySelectorAll('.table-item'),
+            'tableOrder': ['_0', '_1', '_2', '_3', '_4', '_5', '_6', '_7', '_8', '_9'],
             // Menu
             'menu': document.querySelector('.menu'),
             'menuGroups': document.querySelectorAll('.menu-group'),
@@ -57,12 +59,14 @@ document.addEventListener('DOMContentLoaded', function() {
             s.buildTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
             s.buildDeselect.addEventListener('click', MenuMaker.deselectAllItems)
 
-            s.tableItems.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
+            let tableItems = document.querySelectorAll('.table-item')
+            tableItems.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
             s.tableInputs.forEach(input => { input.addEventListener('keydown', MenuMaker.checkKeypress, true) })
         },
 
         // Updates site with session data, [[assumes group 1 is set, not saving active group to session]]
         updateWithSessionData: function() {
+            console.log(">> updateWithSessionData")
             // Update group names
             for (let x = 0; x < 5; x++) {
                 s.groupNames[x].innerText = s.sessionData.names[x].group
@@ -78,13 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     let newItem = MenuMaker.createTableItemHTML(s.sessionData.tables[0][x][y])
                     s.tables[x].querySelector('.table-items').innerHTML += newItem
                 }
-                // Hide or unhide table based on itemCount
-                let tableHidden = s.tables[x].classList.contains('hidden')
-                if ((itemCount && tableHidden) || (!itemCount && !tableHidden)) {
-                    s.tables[x].classList.toggle('hidden')
-                }
             }
-            s.tableItems = document.querySelectorAll('.table-item')
             // Update menu
             for (let x = 0; x < 5; x++) {
                 let dishCount = s.sessionData.menu[x].length
@@ -103,25 +101,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
-        // Called when changing table group, creates tables based on session.tables[groupIndex]
-        updateTables: function(groupIndex) {
-            s.tableItems.forEach(item => { item.remove() })
+        // Called when changing table group, creates tables based on session
+        updateTables: function() {
+            console.log(">> updateTables")
+            let tableItems = document.querySelectorAll('.table-item')
+            tableItems.forEach(item => { item.remove() })
             for (let x = 0; x < 10; x++) {
-                s.tables[x].querySelector('.table-title').innerText = s.sessionData.names[groupIndex].tables[x]
+                s.tables[x].querySelector('.table-title').innerText = s.sessionData.names[s.groupIndex].tables[x]
                 // Create table items
-                let itemCount = s.sessionData.tables[groupIndex][x].length
+                let itemCount = s.sessionData.tables[s.groupIndex][x].length
                 for (let y = 0; y < itemCount; y++) {
-                    let newItem = MenuMaker.createTableItemHTML(s.sessionData.tables[groupIndex][x][y])
+                    let newItem = MenuMaker.createTableItemHTML(s.sessionData.tables[s.groupIndex][x][y])
                     s.tables[x].querySelector('.table-items').innerHTML += newItem
                 }
-                // Hide or unhide table based on itemCount
-                let tableHidden = s.tables[x].classList.contains('hidden')
-                if ((itemCount && tableHidden) || (!itemCount && !tableHidden)) {
-                    s.tables[x].classList.toggle('hidden')
-                }
             }
-            s.tableItems = document.querySelectorAll('.table-item')
-            s.tableItems.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
+            tableItems = document.querySelectorAll('.table-item')
+            tableItems.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
+            // If edit mode active, call functions to toggle contentEditable for new divs
+            if (s.editModeActive) {
+                MenuMaker.toggleTableEditMode()
+                MenuMaker.toggleMenuEditMode()
+                MenuMaker.toggleButtonsEditMode()
+            }
         },
 
         // Creates a new table item based on table input field
@@ -129,20 +130,26 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> createNewTableItem")
             let text = target.value
             let newItem = MenuMaker.createTableItemHTML(text)
-            let table = target.parentElement.querySelector('.table-items')
-            table.innerHTML += newItem
+            let tableItems = target.parentElement.querySelector('.table-items')
+            tableItems.innerHTML += newItem
             target.value = ''
             // If item was created with edit mode active, set edit mode styles
             if (s.editModeActive) {
-                let newElement = table.lastChild
+                let newElement = tableItems.lastChild
                 let newContent = newElement.querySelector('.item-content')
                 newElement.addEventListener('keydown', MenuMaker.checkKeypress, true)
                 newContent.style.cursor = 'text'
                 newContent.contentEditable = true
             }
             // Rebind UI actions for all items in this table
-            let tableItems = table.querySelectorAll('.table-item')
-            tableItems.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
+            let items = tableItems.querySelectorAll('.table-item')
+            items.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
+            // Update session
+            let table = tableItems.parentElement.parentElement
+            let indexClass = table.classList[1]
+            let tableIndex = s.tableOrder.indexOf(indexClass)
+            s.sessionData.tables[s.groupIndex][tableIndex].push(text)
+            MenuMaker.sendPost()
         },
 
         //
@@ -185,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Listener, runs while dropdown is open, ends when user clicks outside of dropdown
         checkDropdownClick: function(event) {
-            console.log(">> checkClick")
+            console.log(">> checkDropdownClick")
             let target = event.target
             if (!s.groupSelector.contains(target) && !s.groupDropdown.contains(target)) {
                 document.removeEventListener('click', MenuMaker.checkDropdownClick, true)
@@ -195,17 +202,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Change active table group, fill in values from session
         changeTableGroup: function(event) {
+            console.log(">> changeTableGroup")
+            // If edit mode is active, update session
+            if (s.editModeActive) {
+                MenuMaker.cacheActiveTables()
+                MenuMaker.sendPost()
+            }
             let newGroup = event.target.closest('.group-item')
             if (newGroup.classList.contains('active')) { return }
             let oldGroup = s.groupDropdown.querySelector('.group-item.active')
             oldGroup.classList.toggle('active')
             newGroup.classList.toggle('active')
-            let groupIndex = s.groupOrder.indexOf(newGroup.classList[1])
-            MenuMaker.updateTables(groupIndex)
+            let newGroupName = newGroup.querySelector('.group-name').innerText
+            s.groupSelectorName.innerText = newGroupName
+            s.groupIndex = s.groupOrder.indexOf(newGroup.classList[1])
+            MenuMaker.updateTables()
         },
 
         //
         selectTableItem: function(event) {
+            console.log(">> selectTableItem")
             let tableItem = event.target
             if (tableItem.classList[0] != 'table-item') {
                 tableItem = tableItem.closest('.table-item')
@@ -229,6 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Dish builder deselect button, clear table selecitons and dish builder fields
         deselectAllItems: function() {
+            console.log(">> deselectAllItems")
             let activeItems = document.querySelectorAll('.table-item.selected')
             activeItems.forEach(item => item.classList.toggle('selected'))
             s.buildID.value = ''
@@ -238,6 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         //
         updateBuildBox: function() {
+            console.log(">> updateBuildBox")
             let itemList = []
             let selectedItems = document.querySelectorAll('.table-item.selected')
             selectedItems.forEach(item => { itemList.push(item.querySelector('.item-content').innerText) })
@@ -250,9 +268,15 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> toggleEditMode")
             s.editModeButton.classList.toggle('active')
             s.editModeActive = s.editModeButton.classList.contains('active')
+            // If edit mode was turned off, update session
+            if (!s.editModeActive) {
+                MenuMaker.cacheActiveTables()
+                MenuMaker.sendPost()
+            }
             // Call functions to toggle contentEditable for divs
             MenuMaker.toggleTableEditMode()
             MenuMaker.toggleMenuEditMode()
+            MenuMaker.toggleButtonsEditMode()
         },
 
         // Toggle edit mode for tables
@@ -281,9 +305,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                 }
             })
-            // Update buttons
-            let tableDeleteButtons = document.querySelectorAll('.table-delete')
-            tableDeleteButtons.forEach(button => { button.classList.toggle('inactive') })
         },
 
         // Toggle edit mode for menu
@@ -315,14 +336,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     dishItems.contentEditable = false
                 }
             })
-            // Update buttons
-            let dishDeleteButtons = document.querySelectorAll('.dish-delete')
-            dishDeleteButtons.forEach(button => { button.classList.toggle('inactive') })
+        },
+
+        // Toggle edit mode for delete buttons
+        toggleButtonsEditMode: function() {
+            let tableButtons = document.querySelectorAll('.table-delete')
+            let menuButtons = document.querySelectorAll('.dish-delete')
+            if (tableButtons.length) {
+                let tableDeleteOff = tableButtons[0].classList.contains('inactive')
+                if ((s.editModeActive && tableDeleteOff) || (!s.editModeActive && !tableDeleteOff)) {
+                    tableButtons.forEach(button => { button.classList.toggle('inactive') })
+                }
+            }
+            if (menuButtons.length) {
+                let menuDeleteOff = menuButtons[0].classList.contains('inactive')
+                if ((s.editModeActive && menuDeleteOff) || (!s.editModeActive && !menuDeleteOff)) {
+                    menuButtons.forEach(button => { button.classList.toggle('inactive') })
+                }
+            }
         },
 
         // Check keypresses while in edit mode
         checkKeypress: function(event) {
-            console.log("CHECK")
+            console.log("checkKeypress")
             if (event.key === 'Escape' || event.keyCode === 27) {
                 document.removeEventListener('keypress', MenuMaker.checkKeypress, true)
                 MenuMaker.toggleEditMode()
@@ -352,9 +388,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
-        //
+        // Toggle menu visibility
         openMenu: function() {
+            console.log(">> openMenu")
             s.menu.classList.toggle('hidden')
+        },
+
+        // Updates session with the active table names/items (pulled from HTML)
+        // Called before changing table group with edit mode active
+        cacheActiveTables: function() {
+            console.log(">> cacheActiveTables")
+            let tableNames = ['', '', '', '', '', '', '', '', '', '']
+            let tableData = [[], [], [], [], [], [], [], [], [], []]
+            for (let x = 0; x < 10; x++) {
+                let table = s.tables[x]
+                tableNames[x] = table.querySelector('.table-title').innerText
+                let tableItems = table.querySelectorAll('.item-content')
+                for (let y = 0; y < tableItems.length; y++) {
+                    tableData[x].push(tableItems[y].innerText)
+                }
+            }
+            s.sessionData.names[s.groupIndex].tables = tableNames
+            s.sessionData.tables[s.groupIndex] = tableData
+            return
+        },
+
+        // POST updated session object to Flask
+        sendPost: function() {
+            console.log(">> postSession")
+            let data = new FormData()
+            data.append('names', JSON.stringify(s.sessionData.names))
+            data.append('tables', JSON.stringify(s.sessionData.tables))
+            data.append('menu', JSON.stringify(s.sessionData.menu))
+            data.append('settings', JSON.stringify(s.sessionData.settings))
+            let xhr = new XMLHttpRequest
+            xhr.responseType = 'json'
+            xhr.open('POST', '/')
+            xhr.send(data)
         },
 
 

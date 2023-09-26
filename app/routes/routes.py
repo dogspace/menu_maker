@@ -1,7 +1,7 @@
 
 from . import *
 from app import app
-from app.routes.default_session import DEFAULT_SESSION_TESTING
+from app.routes.default_session import DEFAULT_SESSION
 from flask import render_template, send_from_directory, session, request, json
 
 
@@ -29,19 +29,23 @@ def js_path(name):
 def index():
     if request.method == 'GET':
         print(">>>>>>>>>>>>>> /GET <<<<<<<<<<<<<<<<<<")
-        ## TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP
-        # print("!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!!")
-        for key in DEFAULT_SESSION_TESTING.keys(): session[key] = DEFAULT_SESSION_TESTING[key]
+        new_session = False
+        if new_session:
+            print("\n!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!!\n")
+            for key in DEFAULT_SESSION.keys():
+                session[key] = DEFAULT_SESSION[key]
+
         session.modified = True
         return render_template('index.html', sesssion=session)
         
     if request.method == 'POST':
         print(">>>>>>>>>>>>>> /POST <<<<<<<<<<<<<<<<<<")
-        session['menu'] = json.loads(request.values.get('menu'))
+        session['names'] = json.loads(request.values.get('names'))
         session['tables'] = json.loads(request.values.get('tables'))
+        session['menu'] = json.loads(request.values.get('menu'))
         session['settings'] = json.loads(request.values.get('settings'))
         session.modified = True
-        return session
+        return ''
 
 
 if __name__ == "__main__":
