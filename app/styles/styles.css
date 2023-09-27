@@ -222,7 +222,7 @@ body {
 }
 
 .group-item.active .group-name,
-.group-item.active .group-rename {
+.group-item.active .group-rename.inactive {
     color: black;
     background-color: #839496;
 }
@@ -232,7 +232,7 @@ body {
 }
 
 .group-item:hover .group-name,
-.group-item:hover .group-rename {
+.group-item:hover .group-rename.inactive {
     background-color: #839496;
 }
 
@@ -255,8 +255,12 @@ body {
     height: 2.5rem;
     width: 3.5rem;
     border-radius: 0 0.25rem 0.25rem 0;
-    background-color: rgba(131, 148, 150, 50%);
+    background-color: red;
     cursor: pointer;
+}
+
+.group-rename.inactive {
+    background-color: rgba(131, 148, 150, 50%);
 }
 
 .group-rename svg {
@@ -266,7 +270,7 @@ body {
     fill: black;
 }
 
-.group-rename:hover svg {
+.group-rename.inactive:hover svg {
     fill: red;
 }
 

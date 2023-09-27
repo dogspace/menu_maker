@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Edit mode
             'editModeButton': document.querySelector('.edit-icon'),
             'editModeActive': false,
+            'groupRenameActive': false,
             // Group dropdown selector
             'groupSelector': document.querySelector('.group-selector'),
             'groupSelectorName': document.querySelector('.active-group-name'),
@@ -53,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             s.groupSelector.addEventListener('click', MenuMaker.toggleGroupDropdown)
             s.groupRenameButtons.forEach(button => { button.addEventListener('click', MenuMaker.renameGroup) })
-            s.groupNames.forEach(group => { group.addEventListener('click', MenuMaker.changeTableGroup) })
+            s.groupNames.forEach(group => { group.addEventListener('click', MenuMaker.changeGroup) })
 
             s.buildID.addEventListener('keydown', MenuMaker.checkKeypress, true)
             s.buildTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
@@ -67,12 +68,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Updates site with session data, [[assumes group 1 is set, not saving active group to session]]
         updateWithSessionData: function() {
             console.log(">> updateWithSessionData")
+            // Update dropdown button
+            s.groupSelector.querySelector('.active-group-name').innerText = s.sessionData.names[0].group
             // Update group names
             for (let x = 0; x < 5; x++) {
                 s.groupNames[x].innerText = s.sessionData.names[x].group
             }
-            // Update dropdown button
-            s.groupSelector.querySelector('.active-group-name').innerText = s.sessionData.names[0].group
             // Update tables
             for (let x = 0; x < 10; x++) {
                 s.tables[x].querySelector('.table-title').innerText = s.sessionData.names[0].tables[x]
@@ -187,7 +188,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.addEventListener('click', MenuMaker.checkDropdownClick, true)
             } else {
                 document.removeEventListener('click', MenuMaker.checkDropdownClick, true)
+                if (s.groupRenameActive) {
+                    s.groupRenameActive = false
+                    MenuMaker.renameGroup()
+                }
             }
+        },
+
+        //
+        renameGroup: function(event) {
+            let button, groupName
+            if (!event) {
+                button = document.querySelector('.group-rename:not(.inactive)')
+                groupName = button.closest('.group-item').querySelector('.group-name')
+                console.log("BUTTON:")
+                console.log(button)
+            } else {
+                button = event.target.closest('.group-rename')
+                groupName = event.target.closest('.group-item').querySelector('.group-name')
+            }
+
+            button.classList.toggle('inactive')
+            let groupEditActive = !button.classList.contains('inactive')
+            if (groupEditActive) {
+                s.groupRenameActive = true
+                groupName.style.cursor = 'text'
+                groupName.contentEditable = true
+                groupName.focus()
+                window.getSelection().selectAllChildren(groupName)
+                window.getSelection().collapseToEnd()
+
+            } else {
+                s.groupRenameActive = false
+                groupName.style.cursor = 'pointer'
+                groupName.contentEditable = false
+
+            }
+
         },
 
         // Listener, runs while dropdown is open, ends when user clicks outside of dropdown
@@ -201,15 +238,27 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Change active table group, fill in values from session
-        changeTableGroup: function(event) {
-            console.log(">> changeTableGroup")
+        changeGroup: function(event) {
+            console.log(">> changeGroup")
+            let newGroup = event.target.closest('.group-item')
+            // Return if clicked group is already active or is being renamed
+            if (newGroup.classList.contains('active')) { return }
+            if (s.groupRenameActive) {
+                let groupRenameButton = newGroup.querySelector('.group-rename')
+                // Return if user clicks active group rename button
+                if (!groupRenameButton.classList.contains('inactive')) { return }
+                // Turn off group rename if user clicks anywhere outside of editable group name
+                else {
+                    s.groupEditActive = false
+                    MenuMaker.renameGroup()
+                }
+            }
             // If edit mode is active, update session
             if (s.editModeActive) {
                 MenuMaker.cacheActiveTables()
                 MenuMaker.sendPost()
             }
-            let newGroup = event.target.closest('.group-item')
-            if (newGroup.classList.contains('active')) { return }
+            MenuMaker.deselectAllItems()
             let oldGroup = s.groupDropdown.querySelector('.group-item.active')
             oldGroup.classList.toggle('active')
             newGroup.classList.toggle('active')
@@ -246,6 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Dish builder deselect button, clear table selecitons and dish builder fields
         deselectAllItems: function() {
             console.log(">> deselectAllItems")
+            s.buildInfo.classList.add('hidden')
             let activeItems = document.querySelectorAll('.table-item.selected')
             activeItems.forEach(item => item.classList.toggle('selected'))
             s.buildID.value = ''
@@ -361,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log("checkKeypress")
             if (event.key === 'Escape' || event.keyCode === 27) {
                 document.removeEventListener('keypress', MenuMaker.checkKeypress, true)
-                MenuMaker.toggleEditMode()
+                if (s.editModeActive) { MenuMaker.toggleEditMode() }
             } else if (event.key === 'Enter' || event.keyCode == 13) {
                 if (event.target.className == 'table-input') {
                     MenuMaker.createNewTableItem(event.target)
