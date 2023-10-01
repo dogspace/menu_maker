@@ -6,10 +6,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // JS copy of session data, updated and POSTed to Flask
             'sessionData': session,
             'groupIndex': 0,
-            // Edit mode
+            // Header
             'editModeButton': document.querySelector('.edit-icon'),
             'editModeActive': false,
             'groupRenameActive': false,
+            'settingsButton': document.querySelector('.settings-icon'),
+            'settingsMenu': document.querySelector('.settings-menu'),
             // Group dropdown selector
             'groupSelector': document.querySelector('.group-selector'),
             'groupSelectorName': document.querySelector('.active-group-name'),
@@ -18,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'groupNames': document.querySelectorAll('.group-name'),
             'groupRenameButtons': document.querySelectorAll('.group-rename'),
             'groupOrder': ['A', 'B', 'C', 'D', 'E'],
+            'oldGroupName': '',
             // Dish builder
             'buildContainer': document.querySelector('.dish-build-container'),
             'buildInfo': document.querySelector('.build-info'),
@@ -49,6 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         bindUIActions: function() {
             console.log(">> bindUIActions <<")
             s.editModeButton.addEventListener('click', MenuMaker.toggleEditMode)
+            s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
 
             s.menuButton.addEventListener('click', MenuMaker.openMenu)
 
@@ -180,6 +184,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>`
         },
 
+        // Toggle settings menu open/closed
+        toggleSettingsMenu: function() {
+            console.log(">> toggleSettingsMenu")
+            s.settingsMenu.classList.toggle('hidden')
+            if (!s.settingsMenu.classList.contains('hidden')) {
+                document.addEventListener('click', MenuMaker.checkSettingsMenuClick, true)
+            } else {
+                document.removeEventListener('click', MenuMaker.checkSettingsMenuClick, true)
+            }
+        },
+
+        // Runs while settings menu is open, toggles off if user clicks outside of menu
+        checkSettingsMenuClick: function(event) {
+            console.log(">> checkSettingsMenuClick")
+            if (!s.settingsMenu.contains(event.target)) { MenuMaker.toggleSettingsMenu() }
+        },
+
         // Toggle dropdown menu, assign temporary listener if opened
         toggleGroupDropdown: function() {
             console.log(">> toggleGroupDropdown")
@@ -207,24 +228,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 button = event.target.closest('.group-rename')
                 groupName = event.target.closest('.group-item').querySelector('.group-name')
             }
-
+            let groupItem = groupName.parentElement
             button.classList.toggle('inactive')
             let groupEditActive = !button.classList.contains('inactive')
             if (groupEditActive) {
+                s.oldGroupName = groupName.innerText
                 s.groupRenameActive = true
                 groupName.style.cursor = 'text'
                 groupName.contentEditable = true
                 groupName.focus()
                 window.getSelection().selectAllChildren(groupName)
                 window.getSelection().collapseToEnd()
-
+                groupName.addEventListener('keydown', MenuMaker.checkKeypress, true)
             } else {
                 s.groupRenameActive = false
                 groupName.style.cursor = 'pointer'
                 groupName.contentEditable = false
-
+                groupName.removeEventListener('keydown', MenuMaker.checkKeypress, true)
+                // Update session and post if group was renamed
+                if (groupName.innerText != s.oldGroupName) {
+                    if (groupItem.classList.contains('active')) { s.groupSelectorName.innerText = newName }
+                    let g = s.groupOrder.indexOf(groupItem.classList[1])
+                    s.sessionData.names[g].group = newName
+                    MenuMaker.sendPost()
+                }
             }
-
         },
 
         // Listener, runs while dropdown is open, ends when user clicks outside of dropdown
@@ -429,10 +457,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     elementClass = event.target.className
                 }
                 if ((charCount >= 250) ||
-                    ((charCount >= 60) && ((elementClass == 'dish-title') || (elementClass == 'build-title'))) ||
-                    ((charCount >= 40) && ((elementClass == 'item-content') || (elementClass == 'table-input'))) ||
+                    ((charCount >= 60) && (elementClass == 'dish-title' || elementClass == 'build-title')) ||
+                    ((charCount >= 40) && (elementClass == 'item-content' || elementClass == 'table-input' || elementClass == 'group-name')) ||
                     ((charCount >= 25) && (elementClass == 'table-title')) ||
-                    ((charCount >= 4) && ((elementClass == 'dish-id') || (elementClass == 'build-id')))) {
+                    ((charCount >= 4) && (elementClass == 'dish-id' || elementClass == 'build-id'))) {
                     event.preventDefault()
                 }
             }

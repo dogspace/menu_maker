@@ -32,6 +32,7 @@ def index():
         new_session = False
         if new_session:
             print("\n!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!!\n")
+            session.clear()
             for key in DEFAULT_SESSION.keys():
                 session[key] = DEFAULT_SESSION[key]
 

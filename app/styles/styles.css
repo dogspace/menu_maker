@@ -97,14 +97,17 @@ body {
 }
 
 .settings-menu {
-    display: none;
     position: absolute;
     width: 14rem;
     top: 3rem;
     right: 0;
     border-radius: 0.5rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    z-index: 2;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 5;
+}
+
+.settings-menu.hidden {
+    display: none;
 }
 
 .settings-item {
@@ -164,6 +167,7 @@ body {
     background-color: rgb(131, 148, 150);
     border-radius: 0.2rem;
     cursor: pointer;
+    z-index: 3;
 }
 
 .group-selector::before {
@@ -208,6 +212,7 @@ body {
     margin: 0 10%;
     border-radius: 0 0 0.2rem 0.2rem;
     background-color: rgba(0, 0, 0, 0.8);
+    z-index: 3;
 }
 
 .group-dropdown.hidden {
