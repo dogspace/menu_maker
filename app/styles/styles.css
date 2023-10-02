@@ -1,4 +1,13 @@
 
+:root {
+    --mainBackground: #303040;
+    --menuBackground: #0c0b18;
+    --settingsBackground: #000000;
+    --text1: white;
+    --text2: black;
+
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -41,7 +50,7 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    background-color: #303040;
+    background-color: var(--mainBackground);
 }
 
 .header {
@@ -98,11 +107,11 @@ body {
 
 .settings-menu {
     position: absolute;
-    width: 14rem;
+    width: max-content;
     top: 3rem;
     right: 0;
     border-radius: 0.5rem;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: var(--settingsBackground);
     z-index: 5;
 }
 
@@ -111,18 +120,31 @@ body {
 }
 
 .settings-item {
-    height: 2rem;
-    line-height: 1.85rem;
+    height: 2.5rem;
+    line-height: 2.35rem;
     margin: 0.5rem 0.5rem;
-    padding-left: 1rem;
+    padding: 0 1rem;
     border: 0.15rem solid rgba(255, 255, 255, 0.2);
     border-radius: 0.5rem;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(255, 255, 255, 0.1);
     cursor: pointer;
 }
 
+.settings-item span {
+    float: right;
+    padding-left: 1rem;
+    line-height: 2.35rem;
+    color: #c1c1c1;
+    font-weight: bold;
+}
+
 .settings-item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.5);
+}
+
+.settings-item:hover span {
+    color: red;
 }
 
 
@@ -594,6 +616,10 @@ body {
     line-height: 3rem;
     font-size: 1.5rem;
     font-weight: bold;
+}
+
+.menu-group-name.hidden {
+    display: none;
 }
 
 .menu-group-name::after {

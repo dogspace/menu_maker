@@ -32,8 +32,8 @@ DEFAULT_SESSION = {
     ],
 
     'settings': {
-        'edit_mode': 0,
-        'color_theme': 0
+        'color_theme': 0,
+        'split_menu': 0
     }
 }
 

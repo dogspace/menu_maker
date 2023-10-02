@@ -12,6 +12,14 @@ document.addEventListener('DOMContentLoaded', function() {
             'groupRenameActive': false,
             'settingsButton': document.querySelector('.settings-icon'),
             'settingsMenu': document.querySelector('.settings-menu'),
+            'colorThemeButton': document.querySelector('.color-theme'),
+            'colorThemeSpan': document.querySelector('.color-theme span'),
+            'splitMenuButton': document.querySelector('.split-menu'),
+            'splitMenuSpan': document.querySelector('.split-menu span'),
+            'exportMenuButton': document.querySelector('.export-menu'),
+            'importMenuButton': document.querySelector('.import-menu'),
+            'deleteAllButton': document.querySelector('.delete-all'),
+            'colorOrder': ['DARK', 'LIGHT', 'GREY', 'SEPIA'],
             // Group dropdown selector
             'groupSelector': document.querySelector('.group-selector'),
             'groupSelectorName': document.querySelector('.active-group-name'),
@@ -36,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Menu
             'menu': document.querySelector('.menu'),
             'menuGroups': document.querySelectorAll('.menu-group'),
+            'menuGroupNames': document.querySelectorAll('.menu-group-name'),
             'menuButton': document.querySelector('.menu-button'),
         },
 
@@ -46,6 +55,8 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(s.sessionData)
             MenuMaker.updateWithSessionData()
             MenuMaker.bindUIActions()
+            MenuMaker.setColorTheme()
+            MenuMaker.setMenuSplit()
         },
 
         // Bind UI actions
@@ -53,6 +64,8 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> bindUIActions <<")
             s.editModeButton.addEventListener('click', MenuMaker.toggleEditMode)
             s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
+            s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
+            s.splitMenuButton.addEventListener('click', MenuMaker.toggleMenuSplit)
 
             s.menuButton.addEventListener('click', MenuMaker.openMenu)
 
@@ -62,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             s.buildID.addEventListener('keydown', MenuMaker.checkKeypress, true)
             s.buildTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
+            s.buildAdd.addEventListener('click', MenuMaker.createNewMenuDish)
             s.buildDeselect.addEventListener('click', MenuMaker.deselectAllItems)
 
             let tableItems = document.querySelectorAll('.table-item')
@@ -134,6 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
         createNewTableItem: function(target) {
             console.log(">> createNewTableItem")
             let text = target.value
+            if (text.trim() == '') { return }
             let newItem = MenuMaker.createTableItemHTML(text)
             let tableItems = target.parentElement.querySelector('.table-items')
             tableItems.innerHTML += newItem
@@ -164,6 +179,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="item-checkbox"><span class="circle"></span></div>
                     <div class="item-content">` + text + `</div>
                 </div>`
+        },
+
+        // UNFINISHED UNFINISHED UNFINISHED
+        createNewMenuDish: function() {
+            console.log(">> createNewMenuDish")
+            // Ingredients and description are required
+            let id = s.buildID
+            let title = s.buildTitle.innerText
+            let ingredients = s.buildItems.innerText
+            if (title.trim() != '' && ingredients.trim() != '') {
+                let newDish = MenuMaker.createMenuDishHTML(id, title, ingredients)
+                let dishContainer = s.menuGroups[s.groupIndex].querySelector('.menu-group-dishes')
+                dishContainer.innerHTML += newDish
+            }
+            
         },
 
         //
@@ -198,7 +228,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Runs while settings menu is open, toggles off if user clicks outside of menu
         checkSettingsMenuClick: function(event) {
             console.log(">> checkSettingsMenuClick")
-            if (!s.settingsMenu.contains(event.target)) { MenuMaker.toggleSettingsMenu() }
+            if (!s.settingsMenu.contains(event.target) && !s.settingsButton.contains(event.target)) {
+                MenuMaker.toggleSettingsMenu()
+            }
         },
 
         // Toggle dropdown menu, assign temporary listener if opened
@@ -246,7 +278,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 groupName.contentEditable = false
                 groupName.removeEventListener('keydown', MenuMaker.checkKeypress, true)
                 // Update session and post if group was renamed
-                if (groupName.innerText != s.oldGroupName) {
+                let newName = groupName.innerText
+                if (newName != s.oldGroupName) {
                     if (groupItem.classList.contains('active')) { s.groupSelectorName.innerText = newName }
                     let g = s.groupOrder.indexOf(groupItem.classList[1])
                     s.sessionData.names[g].group = newName
@@ -470,6 +503,53 @@ document.addEventListener('DOMContentLoaded', function() {
         openMenu: function() {
             console.log(">> openMenu")
             s.menu.classList.toggle('hidden')
+        },
+
+        // Increments color theme setting, updates session
+        changeColorTheme: function() {
+            console.log(">> changeColorTheme")
+            let theme = (s.sessionData.settings.color_theme + 1) % 4
+            s.sessionData.settings.color_theme = theme
+            MenuMaker.setColorTheme()
+            MenuMaker.sendPost()
+        },
+
+        // Sets site colors based on session
+        setColorTheme: function() {
+            console.log(">> setColorTheme")
+            let theme = ['DARK', 'LIGHT', 'GREY', 'SEPIA'][s.sessionData.settings.color_theme]
+            s.colorThemeSpan.innerText = theme
+            // UNFINISHED UNFINISHED UNFINISHED
+            if (theme == 'DARK') {
+                document.documentElement.style.setProperty('--mainBackground', '#303040')
+            } else if (theme == 'LIGHT') {
+                document.documentElement.style.setProperty('--mainBackground', '#C1C1C1')
+            } else if (theme == 'GREY') {
+                document.documentElement.style.setProperty('--mainBackground', '#737373')
+            } else if (theme == 'SEPIA') {
+                document.documentElement.style.setProperty('--mainBackground', '#DBCBB7')
+            }
+        },
+
+        // Toggles menu split setting, updates session
+        toggleMenuSplit: function() {
+            console.log(">> toggleMenuSplit")
+            let split = s.sessionData.settings.split_menu == 0 ? 1 : 0
+            s.sessionData.settings.split_menu = split
+            MenuMaker.setMenuSplit()
+            MenuMaker.sendPost()
+        },
+
+        // Sets visibility of menu groups based on session
+        setMenuSplit: function() {
+            console.log(">> setMenuSplit")
+            let split = ['ON', 'OFF'][s.sessionData.settings.split_menu]
+            s.splitMenuSpan.innerText = split
+            if (split == 'ON') {
+                s.menuGroupNames.forEach(group => group.classList.remove('hidden'))
+            } else {
+                s.menuGroupNames.forEach(group => group.classList.add('hidden'))
+            }
         },
 
         // Updates session with the active table names/items (pulled from HTML)
