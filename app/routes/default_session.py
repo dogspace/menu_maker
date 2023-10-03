@@ -24,7 +24,7 @@ DEFAULT_SESSION = {
     ],
 
     'menu': [
-        [],     # [{'name': '', 'number': '', 'items': ''}, ...]
+        [],     # [{'id': '', 'title': '', 'items': ''}, ...]
         [],
         [],
         [],

@@ -600,7 +600,7 @@ body {
     display: flex;
     flex-flow: column nowrap;
     width: 50%;
-    margin: 3rem 0;
+    /* margin: 3rem 0; */
 }
 
 .menu-group.hidden {
@@ -616,6 +616,7 @@ body {
     line-height: 3rem;
     font-size: 1.5rem;
     font-weight: bold;
+    margin-top: 3rem;
 }
 
 .menu-group-name.hidden {
@@ -702,7 +703,7 @@ body {
 }
 
 .dish-delete.inactive {
-    opacity: 30%;
+    visibility: hidden;
 }
 
 .dish-delete.inactive svg {
@@ -716,17 +717,20 @@ body {
     width: 8rem;
     bottom: 2rem;
     right: 2rem;
-    background-color: rgb(255, 98, 98);
+    background-color: #ff6262;
     border-radius: 50%;
     z-index: 10;
     cursor: pointer;
+    -webkit-transition: background-color 400ms linear;
+    -ms-transition: background-color 400ms linear;
+    transition: background-color 400ms linear;
 }
 
 .menu-button svg {
     height: 6rem;
     width: 6rem;
     margin: 1rem;
-    fill: #303040;
+    fill: var(--mainBackground)
 }
 
 

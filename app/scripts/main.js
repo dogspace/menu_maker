@@ -104,18 +104,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             // Update menu
             for (let x = 0; x < 5; x++) {
-                let dishCount = s.sessionData.menu[x].length
-                if (dishCount == 0) { continue }
-                // Unhide group and set title
-                s.menuGroups[x].classList.remove('hidden')
                 s.menuGroups[x].querySelector('.menu-group-name').innerText = s.sessionData.names[x].group
-                // Create dishes
-                let dishContainer = s.menuGroups[x].querySelector('.menu-group-dishes')
-                for (let y = 0; y < dishCount; y++) {
-                    let dish = s.sessionData.menu[x][y]
-                    let items = dish.items.join(', ')
-                    let newDish = MenuMaker.createMenuDishHTML(dish.id, dish.name, items)
-                    dishContainer.innerHTML += newDish
+                let dishCount = s.sessionData.menu[x].length
+                // Hide group name if no dishes and menu split setting is on, else create dishes
+                if (dishCount == 0 && s.sessionData.settings.split_menu == 0) {
+                    s.menuGroupNames[x].classList.add('hidden')
+                } else {
+                    let dishContainer = s.menuGroups[x].querySelector('.menu-group-dishes')
+                    for (let y = 0; y < dishCount; y++) {
+                        let dish = s.sessionData.menu[x][y]
+                        let newDish = MenuMaker.createMenuDishHTML(dish.id, dish.title, dish.items)
+                        dishContainer.innerHTML += newDish
+                    }
                 }
             }
         },
@@ -181,19 +181,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>`
         },
 
-        // UNFINISHED UNFINISHED UNFINISHED
+        // Adds dish to menu, updates session
         createNewMenuDish: function() {
             console.log(">> createNewMenuDish")
-            // Ingredients and description are required
-            let id = s.buildID
-            let title = s.buildTitle.innerText
+            let id = s.buildID.value
+            let title = s.buildTitle.value
             let ingredients = s.buildItems.innerText
+            // Ingredients and description are required, id is optional
             if (title.trim() != '' && ingredients.trim() != '') {
                 let newDish = MenuMaker.createMenuDishHTML(id, title, ingredients)
-                let dishContainer = s.menuGroups[s.groupIndex].querySelector('.menu-group-dishes')
-                dishContainer.innerHTML += newDish
+                let group = s.menuGroups[s.groupIndex]
+                let groupDishes = group.querySelector('.menu-group-dishes')
+                groupDishes.innerHTML += newDish
+                group.querySelector('.menu-group-name').classList.remove('hidden')
+                MenuMaker.deselectAllItems()
+                MenuMaker.cacheMenu()
+                MenuMaker.sendPost()
+                // Flash menu button color to indicate the dish was added
+                s.menuButton.style.backgroundColor = 'green'
+                setTimeout(() => { s.menuButton.style.backgroundColor = '#ff6262' }, 400)
             }
-            
         },
 
         //
@@ -254,8 +261,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!event) {
                 button = document.querySelector('.group-rename:not(.inactive)')
                 groupName = button.closest('.group-item').querySelector('.group-name')
-                console.log("BUTTON:")
-                console.log(button)
             } else {
                 button = event.target.closest('.group-rename')
                 groupName = event.target.closest('.group-item').querySelector('.group-name')
@@ -546,7 +551,11 @@ document.addEventListener('DOMContentLoaded', function() {
             let split = ['ON', 'OFF'][s.sessionData.settings.split_menu]
             s.splitMenuSpan.innerText = split
             if (split == 'ON') {
-                s.menuGroupNames.forEach(group => group.classList.remove('hidden'))
+                for (let x = 0; x < 5; x++) {
+                    let dishCount = s.sessionData.menu[x].length
+                    if (dishCount == 0) { s.menuGroupNames[x].classList.add('hidden') }
+                    else { s.menuGroupNames[x].classList.remove('hidden') }
+                }
             } else {
                 s.menuGroupNames.forEach(group => group.classList.add('hidden'))
             }
@@ -568,7 +577,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             s.sessionData.names[s.groupIndex].tables = tableNames
             s.sessionData.tables[s.groupIndex] = tableData
-            return
+        },
+
+        // Updates session with the current menu dishes
+        // Re-caching the entire menu is easier than deleting specific dishes from the session
+        cacheMenu: function() {
+            for (let x = 0; x < 5; x++) {
+                let dishList = []
+                let dishes = s.menuGroups[x].querySelectorAll('.menu-dish')
+                dishes.forEach(dish => {
+                    let d = {
+                        'id': dish.querySelector('.dish-id').innerText,
+                        'title': dish.querySelector('.dish-title').innerText,
+                        'items': dish.querySelector('.dish-items').innerText
+                    }
+                    dishList.push(d)
+                })
+                s.sessionData.menu[x] = dishList
+            }
         },
 
         // POST updated session object to Flask
