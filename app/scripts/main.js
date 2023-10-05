@@ -39,6 +39,9 @@ document.addEventListener('DOMContentLoaded', function() {
             'buildDeselect': document.querySelector('.build-deselect'),
             // Tables
             'tables': document.querySelectorAll('.table'),
+            'tableHeaders': document.querySelectorAll('.table-header'),
+            'tableControlButtons': document.querySelectorAll('.table-control-icon'),
+            'tableControlMenus': document.querySelectorAll('.table-control-menu'),
             'tableInputs': document.querySelectorAll('.table-input'),
             'tableOrder': ['_0', '_1', '_2', '_3', '_4', '_5', '_6', '_7', '_8', '_9'],
             // Menu
@@ -54,13 +57,14 @@ document.addEventListener('DOMContentLoaded', function() {
             s = MenuMaker.settings
             console.log(s.sessionData)
             MenuMaker.updateWithSessionData()
-            MenuMaker.bindUIActions()
+            MenuMaker.bindStaticUIActions()
+            MenuMaker.bindDynamicUIActions()
             MenuMaker.setColorTheme()
             MenuMaker.setMenuSplit()
         },
 
-        // Bind UI actions
-        bindUIActions: function() {
+        // Bind Static UI actions (called at init)
+        bindStaticUIActions: function() {
             console.log(">> bindUIActions <<")
             s.editModeButton.addEventListener('click', MenuMaker.toggleEditMode)
             s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
@@ -78,9 +82,17 @@ document.addEventListener('DOMContentLoaded', function() {
             s.buildAdd.addEventListener('click', MenuMaker.createNewMenuDish)
             s.buildDeselect.addEventListener('click', MenuMaker.deselectAllItems)
 
+            s.tableControlButtons.forEach(button => { button.addEventListener('click', MenuMaker.toggleTableControlMenu) })
+            s.tableInputs.forEach(input => { input.addEventListener('keydown', MenuMaker.checkKeypress, true) })
+        },
+
+        // Bind dynamic UI actions (called at init and after creating a new table/menu item)
+        bindDynamicUIActions: function() {
             let tableItems = document.querySelectorAll('.table-item')
             tableItems.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
-            s.tableInputs.forEach(input => { input.addEventListener('keydown', MenuMaker.checkKeypress, true) })
+
+            let dishDeleteButtons = s.menu.querySelectorAll('.dish-delete')
+            dishDeleteButtons.forEach(button => { button.addEventListener('click', MenuMaker.deleteMenuDish) })
         },
 
         // Updates site with session data, [[assumes group 1 is set, not saving active group to session]]
@@ -153,17 +165,10 @@ document.addEventListener('DOMContentLoaded', function() {
             let tableItems = target.parentElement.querySelector('.table-items')
             tableItems.innerHTML += newItem
             target.value = ''
-            // If item was created with edit mode active, set edit mode styles
-            if (s.editModeActive) {
-                let newElement = tableItems.lastChild
-                let newContent = newElement.querySelector('.item-content')
-                newElement.addEventListener('keydown', MenuMaker.checkKeypress, true)
-                newContent.style.cursor = 'text'
-                newContent.contentEditable = true
-            }
+            // If item was created with edit mode active, set edit mode styles/actions
+            if (s.editModeActive) { MenuMaker.toggleTableEditMode() }
             // Rebind UI actions for all items in this table
-            let items = tableItems.querySelectorAll('.table-item')
-            items.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
+            MenuMaker.bindDynamicUIActions()
             // Update session
             let table = tableItems.parentElement.parentElement
             let indexClass = table.classList[1]
@@ -197,8 +202,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 MenuMaker.deselectAllItems()
                 MenuMaker.cacheMenu()
                 MenuMaker.sendPost()
+                // If dish was created with edit mode active, set edit mode styles/actions
+                if (s.editModeActive) {
+                    MenuMaker.toggleMenuEditMode()
+                    MenuMaker.toggleButtonsEditMode()
+                }
+                // Rebind UI actions for all items in this table
+                MenuMaker.bindDynamicUIActions()
                 // Flash menu button color to indicate the dish was added
-                s.menuButton.style.backgroundColor = 'green'
+                s.menuButton.style.backgroundColor = 'white'
                 setTimeout(() => { s.menuButton.style.backgroundColor = '#ff6262' }, 400)
             }
         },
@@ -221,14 +233,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>`
         },
 
+        // Removes dish from menu and updates session
+        deleteMenuDish: function(event) {
+            console.log(">> deleteMenuDish")
+            let dish = event.target.closest('.menu-dish')
+            let group = dish.parentElement
+            group.removeChild(dish)
+            MenuMaker.cacheMenu()
+            MenuMaker.sendPost()
+        },
+
         // Toggle settings menu open/closed
         toggleSettingsMenu: function() {
             console.log(">> toggleSettingsMenu")
             s.settingsMenu.classList.toggle('hidden')
-            if (!s.settingsMenu.classList.contains('hidden')) {
-                document.addEventListener('click', MenuMaker.checkSettingsMenuClick, true)
-            } else {
+            if (s.settingsMenu.classList.contains('hidden')) {
                 document.removeEventListener('click', MenuMaker.checkSettingsMenuClick, true)
+            } else {
+                document.addEventListener('click', MenuMaker.checkSettingsMenuClick, true)
             }
         },
 
@@ -244,14 +266,14 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleGroupDropdown: function() {
             console.log(">> toggleGroupDropdown")
             s.groupDropdown.classList.toggle('hidden')
-            if (!s.groupDropdown.classList.contains('hidden')) {
-                document.addEventListener('click', MenuMaker.checkDropdownClick, true)
-            } else {
+            if (s.groupDropdown.classList.contains('hidden')) {
                 document.removeEventListener('click', MenuMaker.checkDropdownClick, true)
                 if (s.groupRenameActive) {
                     s.groupRenameActive = false
                     MenuMaker.renameGroup()
                 }
+            } else {
+                document.addEventListener('click', MenuMaker.checkDropdownClick, true)
             }
         },
 
@@ -282,11 +304,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 groupName.style.cursor = 'pointer'
                 groupName.contentEditable = false
                 groupName.removeEventListener('keydown', MenuMaker.checkKeypress, true)
-                // Update session and post if group was renamed
+                // Update menu and session if group was renamed
                 let newName = groupName.innerText
                 if (newName != s.oldGroupName) {
                     if (groupItem.classList.contains('active')) { s.groupSelectorName.innerText = newName }
                     let g = s.groupOrder.indexOf(groupItem.classList[1])
+                    s.menuGroupNames[g].innerText = newName
                     s.sessionData.names[g].group = newName
                     MenuMaker.sendPost()
                 }
@@ -335,6 +358,44 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         //
+        toggleTableControlMenu: function(event) {
+            console.log(">> toggleTableControlMenu")
+            let tableHeader = event.target.closest('.table-header')
+            let menu = tableHeader.querySelector('.table-control-menu')
+            menu.classList.toggle('hidden')
+            if (menu.classList.contains('hidden')) {
+                console.log("REMOVE")
+                document.removeEventListener('click', MenuMaker.checkTableMenuClick, true)
+            } else {
+                document.addEventListener('click', MenuMaker.checkTableMenuClick, true)
+            }
+        },
+
+        //
+        hideTableControlMenus: function() {
+            let visibleTable = document.querySelector('.table-control-menu:not(.hidden)')
+            if (visibleTable) { visibleTable.classList.add('hidden') }
+            document.removeEventListener('click', MenuMaker.checkTableMenuClick, true)
+        },
+
+        // Runs while table control menu is open, toggles off is user clicks outside of menu
+        checkTableMenuClick: function(event) {
+            console.log(">> checkTableMenuClick")
+            let validClick = false
+            s.tableControlMenus.forEach(menu => { if (menu.contains(event.target)) {
+                console.log("CLICKED IN MENU - return")
+                validClick = true
+            } })
+            if (validClick == false) {
+                s.tableControlButtons.forEach(button => { if (button.contains(event.target)) {
+                    console.log("CLICKED IN button - return")
+                    validClick = true
+                } })
+            }
+            if (validClick == false ) { MenuMaker.hideTableControlMenus() }
+        },
+
+        //
         selectTableItem: function(event) {
             console.log(">> selectTableItem")
             let tableItem = event.target
@@ -350,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             tableItem.classList.toggle('selected')
             MenuMaker.updateBuildBox()
-            //
+            // Set visibility of dish id/title fields
             let itemSelected = document.querySelector('.table-item.selected')
             if ((itemSelected && s.buildInfo.classList.contains('hidden')) ||
                 (!itemSelected && !s.buildInfo.classList.contains('hidden'))) {
@@ -397,8 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Toggle edit mode for tables
         toggleTableEditMode: function() {
-            let tableList = document.querySelectorAll('.table')
-            tableList.forEach(table => {
+            s.tables.forEach(table => {
                 let tableTitle = table.querySelector('.table-title')
                 let tableItems = table.querySelectorAll('.item-content')
                 if (s.editModeActive) {
@@ -456,18 +516,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Toggle edit mode for delete buttons
         toggleButtonsEditMode: function() {
-            let tableButtons = document.querySelectorAll('.table-delete')
             let menuButtons = document.querySelectorAll('.dish-delete')
-            if (tableButtons.length) {
-                let tableDeleteOff = tableButtons[0].classList.contains('inactive')
-                if ((s.editModeActive && tableDeleteOff) || (!s.editModeActive && !tableDeleteOff)) {
-                    tableButtons.forEach(button => { button.classList.toggle('inactive') })
-                }
-            }
             if (menuButtons.length) {
-                let menuDeleteOff = menuButtons[0].classList.contains('inactive')
-                if ((s.editModeActive && menuDeleteOff) || (!s.editModeActive && !menuDeleteOff)) {
-                    menuButtons.forEach(button => { button.classList.toggle('inactive') })
+                if (s.editModeActive) {
+                    menuButtons.forEach(button => button.classList.remove('inactive'))
+                } else {
+                    menuButtons.forEach(button => button.classList.add('inactive'))
                 }
             }
         },
@@ -481,8 +535,9 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (event.key === 'Enter' || event.keyCode == 13) {
                 if (event.target.className == 'table-input') {
                     MenuMaker.createNewTableItem(event.target)
+                } else {
+                    event.target.blur()
                 }
-                event.target.blur()
             } else if (event.key === 'Tab' || event.KeyCode == 9) {
                 event.preventDefault()
             } else if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g)) {
