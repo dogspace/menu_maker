@@ -581,13 +581,49 @@ document.addEventListener('DOMContentLoaded', function() {
             s.colorThemeSpan.innerText = theme
             // UNFINISHED UNFINISHED UNFINISHED
             if (theme == 'DARK') {
-                document.documentElement.style.setProperty('--mainBackground', '#303040')
+                document.documentElement.style.setProperty('--background1', '#303040')
+                document.documentElement.style.setProperty('--background2', '#00000040')
+                document.documentElement.style.setProperty('--groupSelectorBackground', '#839496')
+                document.documentElement.style.setProperty('--groupDropdownBackground', '#000000')
+                document.documentElement.style.setProperty('--groupNameBackground', '#576263')
+                document.documentElement.style.setProperty('--dishBuilderBackground', '#00000080')
+                document.documentElement.style.setProperty('--tableBackground', '#000000')
+                document.documentElement.style.setProperty('--tableItemBackground', '#000000')
+                document.documentElement.style.setProperty('--tableItemHover', '#FFFFFF0F')
+                document.documentElement.style.setProperty('--menuBackground', '#0C0B18')
+                document.documentElement.style.setProperty('--popupBackground', '#000000')
+                document.documentElement.style.setProperty('--popupRowBackground', '#FFFFFF1A')
+                document.documentElement.style.setProperty('--popupBorder', '#FFFFFF33')
+                document.documentElement.style.setProperty('--text1', '#FFFFFF')
+                document.documentElement.style.setProperty('--text1-50', '#FFFFFF7F')
+                document.documentElement.style.setProperty('--text2', '#000000')
+                document.documentElement.style.setProperty('--text3', '#FFFFFF')
+                document.documentElement.style.setProperty('--placeholderText', '#8E8E8E')
             } else if (theme == 'LIGHT') {
-                document.documentElement.style.setProperty('--mainBackground', '#C1C1C1')
+                document.documentElement.style.setProperty('--background1', '#E9ECE6')
+                document.documentElement.style.setProperty('--background2', '#0000001a')
+                document.documentElement.style.setProperty('--groupSelectorBackground', '#717f81')
+                document.documentElement.style.setProperty('--groupDropdownBackground', '#FFFFFF')
+                document.documentElement.style.setProperty('--groupNameBackground', '#AFBABB')
+                document.documentElement.style.setProperty('--dishBuilderBackground', '#717f81')
+                document.documentElement.style.setProperty('--tableBackground', '#717f81')
+                document.documentElement.style.setProperty('--tableItemBackground', '#FFFFFF')
+                document.documentElement.style.setProperty('--tableItemHover', '#FFFFFFBF')
+                document.documentElement.style.setProperty('--menuBackground', '#DAE2E3')
+                document.documentElement.style.setProperty('--popupBackground', '#FFFFFF')
+                document.documentElement.style.setProperty('--popupRowBackground', '#0000001A')
+                document.documentElement.style.setProperty('--popupBorder', '#00000033')
+                document.documentElement.style.setProperty('--text1', '#000000')
+                document.documentElement.style.setProperty('--text1-50', '#0000007F')
+                document.documentElement.style.setProperty('--text2', '#FFFFFF')
+                document.documentElement.style.setProperty('--text3', '#FFFFFF')
+                document.documentElement.style.setProperty('--placeholderText', '#FFFFFFBF')
             } else if (theme == 'GREY') {
-                document.documentElement.style.setProperty('--mainBackground', '#737373')
+                document.documentElement.style.setProperty('--background1', '#737373')
+
             } else if (theme == 'SEPIA') {
-                document.documentElement.style.setProperty('--mainBackground', '#DBCBB7')
+                document.documentElement.style.setProperty('--background1', '#DBCBB7')
+
             }
         },
 
