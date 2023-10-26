@@ -85,6 +85,13 @@ body {
     color: var(--text1);
 }
 
+/* TEMP TEMP TEMP TEMP TEMP TEMP TEMP TEMP */
+.title span {
+    color: red;
+    margin: 0 2rem;
+    font-size: 1.5rem;
+}
+
 .settings {
     position: absolute;
     width: 6rem;
@@ -697,7 +704,7 @@ body {
     position: relative;
     height: 0.2rem;
     border-radius: 0.2rem;
-    background-color: white;
+    background-color: var(--text1);
     opacity: 60%;
 }
 
