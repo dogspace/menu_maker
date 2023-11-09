@@ -12,6 +12,12 @@ from flask import render_template, send_from_directory, session, request, json
 #     return render_template('error.html', error=error)
 
 
+@app.route('/app/assets/<path:name>')
+def asset_path(name):
+    '''Returns requested asset file from /app/assets/'''
+    return send_from_directory('assets', name)
+
+
 @app.route('/app/styles/<path:name>')
 def css_path(name):
     '''Returns requested CSS file from /app/styles/'''
