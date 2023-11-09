@@ -16,8 +16,11 @@ document.addEventListener('DOMContentLoaded', function() {
             'colorThemeSpan': document.querySelector('.color-theme span'),
             'splitMenuButton': document.querySelector('.split-menu'),
             'splitMenuSpan': document.querySelector('.split-menu span'),
-            'exportMenuButton': document.querySelector('.export-menu'),
-            'importMenuButton': document.querySelector('.import-menu'),
+            'exportDataButton': document.querySelector('.export-data'),
+            'importDataButton': document.querySelector('.import-data'),
+            'popupBox': document.querySelector('.popup'),
+            'popupHeader': document.querySelector('.popup-header'),
+            'popupBody': document.querySelector('.popup-body'),
             'deleteAllButton': document.querySelector('.delete-all'),
             'colorOrder': ['DARK', 'LIGHT', 'GREY', 'SEPIA'],
             // Group dropdown selector
@@ -70,6 +73,8 @@ document.addEventListener('DOMContentLoaded', function() {
             s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
             s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
             s.splitMenuButton.addEventListener('click', MenuMaker.toggleMenuSplit)
+            s.exportDataButton.addEventListener('click', MenuMaker.exportData)
+            s.importDataButton.addEventListener('click', MenuMaker.importData)
 
             s.menuButton.addEventListener('click', MenuMaker.openMenu)
 
@@ -650,6 +655,89 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 s.menuGroupNames.forEach(group => group.classList.add('hidden'))
             }
+        },
+
+        // Export data, converts session into a base64 string for user to copy
+        exportData: function() {
+            s.popupHeader.innerText = 'Click to copy:'
+            s.popupBody.innerText = MenuMaker.encodeSession()
+            s.popupBody.contentEditable = false
+            s.popupBody.style.cursor = 'pointer'
+            MenuMaker.togglePopupBox(false)
+        },
+
+        //
+        importData: function() {
+            s.popupHeader.innerText = 'Paste data below:'
+            s.popupBody.innerText = ''
+            s.popupBody.contentEditable = true
+            s.popupBody.style.cursor = 'text'
+            MenuMaker.togglePopupBox(true)
+        },
+
+        //
+        togglePopupBox: function(isImport) {
+            console.log(">> togglePopupBox")
+            s.popupBox.classList.toggle('hidden')
+            if (s.popupBox.classList.contains('hidden')) {
+                if (isImport) {
+                    document.removeEventListener('click', MenuMaker.checkPopupClickImport, true)
+                } else {
+                    document.removeEventListener('click', MenuMaker.checkPopupClickExport, true)
+                }
+                //document.removeEventListener('click', MenuMaker.checkPopupClick, true)
+                //document.removeEventListener('click', function(e) { MenuMaker.checkPopupClick(e, isExport) }, true)
+            } else {
+                if (isImport) {
+                    document.addEventListener('click', MenuMaker.checkPopupClickImport, true)
+                } else {
+                    document.addEventListener('click', MenuMaker.checkPopupClickExport, true)
+                }
+                //document.addEventListener('click', MenuMaker.checkPopupClick, true)
+                //document.addEventListener('click', function(e) { MenuMaker.checkPopupClick(e, isExport) }, true)
+            }
+        },
+
+        // Listener, runs while dropdown is open, ends when user clicks outside of dropdown
+        checkPopupClickImport: function(event) {
+            console.log(">> checkPopupClick")
+            let target = event.target
+            if (!s.popupBox.contains(target)) {
+                document.removeEventListener('click', MenuMaker.checkPopupClickImport, true)
+                MenuMaker.togglePopupBox()
+            }
+        },
+
+        // Listener, runs while dropdown is open, ends when user clicks outside of dropdown
+        checkPopupClickExport: function(event) {
+            console.log(">> checkPopupClick")
+            let target = event.target
+            if (!s.popupBox.contains(target)) {
+                document.removeEventListener('click', MenuMaker.checkPopupClickExport, true)
+                MenuMaker.togglePopupBox()
+            } else {
+                navigator.clipboard.writeText(s.popupBody.innerText)
+                let bColor = document.documentElement.style.getPropertyValue('--popupBackground')
+                s.popupBox.style.backgroundColor = 'green'
+                setTimeout(function() { s.popupBox.style.backgroundColor = bColor }, 300)
+            }
+        },
+
+        // Converts session object into a base64 encoded string
+        encodeSession: function() {
+            return btoa(JSON.stringify(s.sessionData))
+        },
+
+        // Attempts to convert user input into an object, updates session if valid
+        // Warns user if there is existing data (will be erased), tells user if input was invalid
+        decodeInput: function(encode) {
+            //return JSON.parse(atob(encode))
+            let base64regex = '/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/'
+            let isBase64 = base64regex.test(encode)
+            if (!isBase64) { return }
+            let decoded = atob(encode)
+            // UNFINISHED UNFINISHED UNFINISHED UNFINISHED
+
         },
 
         // Updates session with the active table names/items (pulled from HTML)

@@ -30,12 +30,13 @@ def index():
     if request.method == 'GET':
         print(">>>>>>>>>>>>>> /GET <<<<<<<<<<<<<<<<<<")
         new_session = False
-        if new_session:
-            print("\n!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!!\n")
-            session.clear()
-            for key in DEFAULT_SESSION.keys():
-                session[key] = DEFAULT_SESSION[key]
-
+        for key in DEFAULT_SESSION.keys():
+            if key not in session or new_session:
+                print("\n!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!!\n")
+                session.clear()
+                for key in DEFAULT_SESSION.keys():
+                    session[key] = DEFAULT_SESSION[key]
+                break
         session.modified = True
         return render_template('index.html', sesssion=session)
         

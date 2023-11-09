@@ -167,6 +167,39 @@ body {
     color: red;
 }
 
+.popup {
+    position: absolute;
+    height: min(80%, 22rem);
+    width: min(80%, 35rem);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    overflow-wrap: anywhere;
+    background-color: var(--popupBackground);
+    border-radius: 1rem;
+    padding: 1rem;
+    z-index: 10;
+    overflow-y: auto;
+    cursor: pointer;
+    transition: background-color 1s;
+}
+
+.popup.hidden {
+    display: none;
+}
+
+.popup-header {
+    font-size: 1.2rem;
+    line-height: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.popup-body {
+    height: calc(100% - 2.2rem);
+    font-size: 0.75rem;
+}
+
 
 
 .content {
