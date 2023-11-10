@@ -18,9 +18,6 @@ document.addEventListener('DOMContentLoaded', function() {
             'splitMenuSpan': document.querySelector('.split-menu span'),
             'exportDataButton': document.querySelector('.export-data'),
             'importDataButton': document.querySelector('.import-data'),
-            'popupBox': document.querySelector('.popup'),
-            'popupHeader': document.querySelector('.popup-header'),
-            'popupBody': document.querySelector('.popup-body'),
             'deleteAllButton': document.querySelector('.delete-all'),
             'colorOrder': ['DARK', 'LIGHT', 'GREY', 'SEPIA'],
             // Group dropdown selector
@@ -52,6 +49,12 @@ document.addEventListener('DOMContentLoaded', function() {
             'menuGroups': document.querySelectorAll('.menu-group'),
             'menuGroupNames': document.querySelectorAll('.menu-group-name'),
             'menuButton': document.querySelector('.menu-button'),
+            //
+            'popupContainer': document.querySelector('.popup-container'),
+            'popupBox': document.querySelector('.popup'),
+            'popupWarning': document.querySelector('.popup-warning'),
+            'popupHeader': document.querySelector('.popup-header'),
+            'popupBody': document.querySelector('.popup-body'),
         },
 
         // Site init
@@ -659,6 +662,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Export data, converts session into a base64 string for user to copy
         exportData: function() {
+            s.popupWarning.classList.add('hidden')
             s.popupHeader.innerText = 'Click to copy:'
             s.popupBody.innerText = MenuMaker.encodeSession()
             s.popupBody.contentEditable = false
@@ -668,7 +672,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         //
         importData: function() {
-            s.popupHeader.innerText = 'Paste data below:'
+            s.popupWarning.classList.remove('hidden')
+            s.popupHeader.innerText = 'Click to paste:'
             s.popupBody.innerText = ''
             s.popupBody.contentEditable = true
             s.popupBody.style.cursor = 'text'
@@ -678,27 +683,25 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         togglePopupBox: function(isImport) {
             console.log(">> togglePopupBox")
-            s.popupBox.classList.toggle('hidden')
-            if (s.popupBox.classList.contains('hidden')) {
+            s.popupContainer.classList.toggle('hidden')
+            if (s.popupContainer.classList.contains('hidden')) {
                 if (isImport) {
                     document.removeEventListener('click', MenuMaker.checkPopupClickImport, true)
+                    document.removeEventListener('click', MenuMaker.checkPopupKeypress, true)
                 } else {
                     document.removeEventListener('click', MenuMaker.checkPopupClickExport, true)
                 }
-                //document.removeEventListener('click', MenuMaker.checkPopupClick, true)
-                //document.removeEventListener('click', function(e) { MenuMaker.checkPopupClick(e, isExport) }, true)
             } else {
                 if (isImport) {
                     document.addEventListener('click', MenuMaker.checkPopupClickImport, true)
+                    document.addEventListener('click', MenuMaker.checkPopupKeypress, true)
                 } else {
                     document.addEventListener('click', MenuMaker.checkPopupClickExport, true)
                 }
-                //document.addEventListener('click', MenuMaker.checkPopupClick, true)
-                //document.addEventListener('click', function(e) { MenuMaker.checkPopupClick(e, isExport) }, true)
             }
         },
 
-        // Listener, runs while dropdown is open, ends when user clicks outside of dropdown
+        // Checks clicks while popup is open, ends when user clicks outside of popup
         checkPopupClickImport: function(event) {
             console.log(">> checkPopupClick")
             let target = event.target
@@ -708,7 +711,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
-        // Listener, runs while dropdown is open, ends when user clicks outside of dropdown
+        // Checks if user input is a valid base64 encoded session object
+        checkPopupKeypress: function(event) {
+            console.log(">> checkPopupKeypress")
+            // UNFINISHED
+        },
+
+        // Checks clicks while popup is open, ends when user clicks outside of popup
         checkPopupClickExport: function(event) {
             console.log(">> checkPopupClick")
             let target = event.target

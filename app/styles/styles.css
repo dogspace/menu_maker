@@ -25,7 +25,7 @@
     padding: 0;
     border: 0;
     /* color: white; */
-    font-size: 14px;
+    font-size: 13px;
     font-family: Arial, Helvetica, sans-serif;
     -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */
@@ -166,40 +166,6 @@ body {
 .settings-item:hover span {
     color: red;
 }
-
-.popup {
-    position: absolute;
-    height: min(80%, 22rem);
-    width: min(80%, 35rem);
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    overflow-wrap: anywhere;
-    background-color: var(--popupBackground);
-    border-radius: 1rem;
-    padding: 1rem;
-    z-index: 10;
-    overflow-y: auto;
-    cursor: pointer;
-    transition: background-color 1s;
-}
-
-.popup.hidden {
-    display: none;
-}
-
-.popup-header {
-    font-size: 1.2rem;
-    line-height: 1.2rem;
-    margin-bottom: 1rem;
-}
-
-.popup-body {
-    height: calc(100% - 2.2rem);
-    font-size: 0.75rem;
-}
-
 
 
 .content {
@@ -842,7 +808,63 @@ body {
 }
 
 
+.popup-container.hidden {
+    display: none;
+}
 
+.popup {
+    display: flex;
+    flex-flow: column nowrap;
+    position: absolute;
+    height: min(80%, 22rem);
+    width: min(80%, 35rem);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    background-color: var(--popupBackground);
+    border-radius: 1rem;
+    padding: 1rem;
+    z-index: 10;
+    cursor: pointer;
+    transition: background-color 1s;
+}
+
+.popup-warning {
+    align-self: center;
+    margin-bottom: 1rem;
+    color: red;
+}
+
+.popup-warning.hidden {
+    display: none;
+}
+
+.popup-header {
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.popup-body {
+    flex-grow: 1;
+    font-size: 0.75rem;
+    border: 0.2rem solid var(--text1-50);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    overflow-wrap: anywhere;
+}
+
+.popup-overlay {
+    background-color: transparent;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    cursor: pointer;
+    z-index: 9;
+}
 
 
 
