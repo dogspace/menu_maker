@@ -830,16 +830,6 @@ body {
     transition: background-color 1s;
 }
 
-.popup-warning {
-    align-self: center;
-    margin-bottom: 1rem;
-    color: red;
-}
-
-.popup-warning.hidden {
-    display: none;
-}
-
 .popup-header {
     font-size: 1.25rem;
     line-height: 1.25rem;
@@ -867,6 +857,17 @@ body {
     z-index: 9;
 }
 
+.popup-warning {
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+    align-self: center;
+    margin-top: 1rem;
+    color: red;
+}
+
+.popup-warning.hidden {
+    display: none;
+}
 
 
 

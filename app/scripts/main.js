@@ -672,8 +672,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         //
         importData: function() {
+            s.popupWarning.innerText = 'WARNING: Your current data will be replaced'
             s.popupWarning.classList.remove('hidden')
-            s.popupHeader.innerText = 'Click to paste:'
+            s.popupHeader.innerText = 'Paste exported data below:'
             s.popupBody.innerText = ''
             s.popupBody.contentEditable = true
             s.popupBody.style.cursor = 'text'
@@ -687,14 +688,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (s.popupContainer.classList.contains('hidden')) {
                 if (isImport) {
                     document.removeEventListener('click', MenuMaker.checkPopupClickImport, true)
-                    document.removeEventListener('click', MenuMaker.checkPopupKeypress, true)
+                    document.removeEventListener('input', MenuMaker.checkPopupKeypress, true)
                 } else {
                     document.removeEventListener('click', MenuMaker.checkPopupClickExport, true)
                 }
             } else {
                 if (isImport) {
                     document.addEventListener('click', MenuMaker.checkPopupClickImport, true)
-                    document.addEventListener('click', MenuMaker.checkPopupKeypress, true)
+                    document.addEventListener('input', MenuMaker.checkPopupKeypress, true)
                 } else {
                     document.addEventListener('click', MenuMaker.checkPopupClickExport, true)
                 }
@@ -714,6 +715,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Checks if user input is a valid base64 encoded session object
         checkPopupKeypress: function(event) {
             console.log(">> checkPopupKeypress")
+            let valid = MenuMaker.isbase64(s.popupBody.innerText)
+            if (valid) { s.popupWarning.innerText = 'VALID BASE64 INPUT' }
+            else { s.popupWarning.innerText = 'INVALID INPUT' }
             // UNFINISHED
         },
 
@@ -737,13 +741,16 @@ document.addEventListener('DOMContentLoaded', function() {
             return btoa(JSON.stringify(s.sessionData))
         },
 
-        // Attempts to convert user input into an object, updates session if valid
+        // Checks if input is a valid base64 encoded string
+        isbase64: function(input) {
+            let base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/
+            return base64regex.test(input)
+        },
+
+        // Attempts to convert base64 input into an object, updates session if valid
         // Warns user if there is existing data (will be erased), tells user if input was invalid
         decodeInput: function(encode) {
             //return JSON.parse(atob(encode))
-            let base64regex = '/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/'
-            let isBase64 = base64regex.test(encode)
-            if (!isBase64) { return }
             let decoded = atob(encode)
             // UNFINISHED UNFINISHED UNFINISHED UNFINISHED
 
