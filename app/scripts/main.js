@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
         settings: {
             // JS copy of session data, updated and POSTed to Flask
             'sessionData': session,
+            'sessionKeys': ['names', 'tables', 'menu', 'settings'],
             'groupIndex': 0,
             // Header
             'editModeButton': document.querySelector('.edit-icon'),
@@ -55,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'popupWarning': document.querySelector('.popup-warning'),
             'popupHeader': document.querySelector('.popup-header'),
             'popupBody': document.querySelector('.popup-body'),
+            'popupOverlay': document.querySelector('.popup-overlay'),
         },
 
         // Site init
@@ -108,6 +110,12 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> updateWithSessionData")
             // Update dropdown button
             s.groupSelector.querySelector('.active-group-name').innerText = s.sessionData.names[0].group
+            let groupA = document.querySelector('.group-item.A')
+            if (!groupA.classList.contains('active')) {
+                let activeGroup = document.querySelector('.group-item.active')
+                activeGroup.classList.remove('active')
+                groupA.classList.add('active')
+            }
             // Update group names
             for (let x = 0; x < 5; x++) {
                 s.groupNames[x].innerText = s.sessionData.names[x].group
@@ -660,11 +668,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
-        // Export data, converts session into a base64 string for user to copy
+        // Export data, converts session into a base64 encoded string for user to copy
         exportData: function() {
             s.popupWarning.classList.add('hidden')
             s.popupHeader.innerText = 'Click to copy:'
-            s.popupBody.innerText = MenuMaker.encodeSession()
+            let base64 = btoa(JSON.stringify(s.sessionData))
+            s.popupBody.innerText = MenuMaker.reverseString(base64)
             s.popupBody.contentEditable = false
             s.popupBody.style.cursor = 'pointer'
             MenuMaker.togglePopupBox(false)
@@ -712,13 +721,35 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
-        // Checks if user input is a valid base64 encoded session object
+        // Checks if user input is a valid base64 encoded session object, updates session
         checkPopupKeypress: function(event) {
             console.log(">> checkPopupKeypress")
-            let valid = MenuMaker.isbase64(s.popupBody.innerText)
-            if (valid) { s.popupWarning.innerText = 'VALID BASE64 INPUT' }
-            else { s.popupWarning.innerText = 'INVALID INPUT' }
-            // UNFINISHED
+            let newSession
+            let isValid = false
+            let input = MenuMaker.reverseString(s.popupBody.innerText)
+            let base64Regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/
+            let dictRegex = /\{(.)+\}/g
+            
+            if (base64Regex.test(input)) {
+                input = atob(input)
+                if (dictRegex.test(input)) {
+                    try {
+                        newSession = JSON.parse(input)
+                        if (s.sessionKeys.every(key => newSession.hasOwnProperty(key))) { isValid = true }
+                    } catch { console.log("MISSING KEYS or INVALID OBJECT") }
+                }
+            }
+            
+            if (!isValid) {
+                s.popupWarning.innerText = 'INVALID INPUT'
+            } else {
+                s.popupWarning.innerText = 'VALID INPUT - UPADING SITE'
+                s.sessionData = newSession
+                MenuMaker.wipeTablesAndMenus()
+                MenuMaker.init()
+                MenuMaker.sendPost()
+                setTimeout(function() { s.popupOverlay.click() }, 2000)
+            }
         },
 
         // Checks clicks while popup is open, ends when user clicks outside of popup
@@ -736,24 +767,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
-        // Converts session object into a base64 encoded string
-        encodeSession: function() {
-            return btoa(JSON.stringify(s.sessionData))
-        },
-
-        // Checks if input is a valid base64 encoded string
-        isbase64: function(input) {
-            let base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/
-            return base64regex.test(input)
-        },
-
-        // Attempts to convert base64 input into an object, updates session if valid
-        // Warns user if there is existing data (will be erased), tells user if input was invalid
-        decodeInput: function(encode) {
-            //return JSON.parse(atob(encode))
-            let decoded = atob(encode)
-            // UNFINISHED UNFINISHED UNFINISHED UNFINISHED
-
+        // Returns reversed string (used to obfuscate base64 encoded session)
+        reverseString: function(str) {
+            return str.split('').reverse().join('')
         },
 
         // Updates session with the active table names/items (pulled from HTML)
@@ -806,7 +822,18 @@ document.addEventListener('DOMContentLoaded', function() {
             xhr.send(data)
         },
 
-
+        // Deletes all ingredients and dishes
+        wipeTablesAndMenus: function() {
+            console.log(">> wipeTablesAndMenus")
+            s.tables.forEach(table => {
+                let tableItems = table.querySelector('.table-items')
+                tableItems.innerHTML = ''
+            })
+            s.menuGroups.forEach(menu => {
+                let menuDishes = menu.querySelector('.menu-group-dishes')
+                menuDishes.innerHTML = ''
+            })
+        },
 
 
     }
