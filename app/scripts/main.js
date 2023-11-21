@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'tableHeaders': document.querySelectorAll('.table-header'),
             'tableControlButtons': document.querySelectorAll('.table-control-icon'),
             'tableControlMenus': document.querySelectorAll('.table-control-menu'),
+            'tableDeleteButtons': document.querySelectorAll('.table-delete'),
             'tableInputs': document.querySelectorAll('.table-input'),
             'tableOrder': ['_0', '_1', '_2', '_3', '_4', '_5', '_6', '_7', '_8', '_9'],
             // Menu
@@ -93,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
             s.buildDeselect.addEventListener('click', MenuMaker.deselectAllItems)
 
             s.tableControlButtons.forEach(button => { button.addEventListener('click', MenuMaker.toggleTableControlMenu) })
+            s.tableDeleteButtons.forEach(button => { button.addEventListener('click', MenuMaker.deleteTableItems )})
             s.tableInputs.forEach(input => { input.addEventListener('keydown', MenuMaker.checkKeypress, true) })
         },
 
@@ -376,8 +378,15 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         toggleTableControlMenu: function(event) {
             console.log(">> toggleTableControlMenu")
-            let tableHeader = event.target.closest('.table-header')
-            let menu = tableHeader.querySelector('.table-control-menu')
+            let table = event.target.closest('.table')
+            let tableNumber = table.classList[1]
+            // Hide open menus on any other tables except clicked
+            let visibleMenus = document.querySelectorAll('.table-control-menu:not(.hidden)')
+            visibleMenus.forEach(menu => {
+                if (!table.contains(menu)) { menu.classList.add('hidden') }
+            })
+            // Toggles clicked menu
+            let menu = table.querySelector('.table-control-menu')
             menu.classList.toggle('hidden')
             if (menu.classList.contains('hidden')) {
                 console.log("REMOVE")
@@ -387,10 +396,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
-        //
+        // Hides all open table control menus
         hideTableControlMenus: function() {
-            let visibleTable = document.querySelector('.table-control-menu:not(.hidden)')
-            if (visibleTable) { visibleTable.classList.add('hidden') }
+            let visibleMenu = document.querySelector('.table-control-menu:not(.hidden)')
+            if (visibleMenu) { visibleMenu.classList.add('hidden') }
             document.removeEventListener('click', MenuMaker.checkTableMenuClick, true)
         },
 
@@ -409,6 +418,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 } })
             }
             if (validClick == false ) { MenuMaker.hideTableControlMenus() }
+        },
+
+        // Deletes all items from a single table
+        deleteTableItems: function(event) {
+            console.log(">> deleteTableItems")
+            let table = event.target.closest('.table')
+            let tableItems = table.querySelector('.table-items')
+            tableItems.innerHTML = ''
         },
 
         //

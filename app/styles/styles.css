@@ -434,6 +434,7 @@ body {
 .table {
     position: absolute;
     display: inline-block;
+    height: calc(100% - 4rem);
     max-height: calc(100% - 4rem);
     width: 22rem;
     top: 2rem;
@@ -556,13 +557,11 @@ body {
     color: red;
 }
 
-
-
 .table-body {
     display: flex;
     flex-flow: column nowrap;
     position: relative;
-    height: calc(100% - 3rem);
+    /* height: calc(100% - 3rem); */
     width: 100%;
     padding: 1.25rem;
     background-color: var(--tableBackground);
