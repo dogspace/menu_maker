@@ -58,6 +58,11 @@ document.addEventListener('DOMContentLoaded', function() {
             'popupHeader': document.querySelector('.popup-header'),
             'popupBody': document.querySelector('.popup-body'),
             'popupOverlay': document.querySelector('.popup-overlay'),
+            //
+            'dragItem': null,
+            'dragClone': null,
+            'startPos': {},
+            'dragged': false,
         },
 
         // Site init
@@ -101,7 +106,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Bind dynamic UI actions (called at init and after creating a new table/menu item)
         bindDynamicUIActions: function() {
             let tableItems = document.querySelectorAll('.table-item')
-            tableItems.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
+            //tableItems.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
+            tableItems.forEach(item => { item.addEventListener('mousedown', MenuMaker.clickElement) })
 
             let dishDeleteButtons = s.menu.querySelectorAll('.dish-delete')
             dishDeleteButtons.forEach(button => { button.addEventListener('click', MenuMaker.deleteMenuDish) })
@@ -850,6 +856,66 @@ document.addEventListener('DOMContentLoaded', function() {
                 let menuDishes = menu.querySelector('.menu-group-dishes')
                 menuDishes.innerHTML = ''
             })
+        },
+
+
+        //
+        clickElement: function(event) {
+            console.log(">> clickElement")
+            document.addEventListener('mouseup', MenuMaker.dropElement)
+            document.addEventListener('mousemove', MenuMaker.dragElement)
+        },
+
+        //
+        grabElement: function(event) {
+            console.log(">> grabElement")
+            if (s.editModeActive) { return }
+            s.dragItem = event.target.closest('.table-item')
+            let clone = s.dragItem.cloneNode(true)
+            s.dragItem.classList.add('drag-item')
+            clone.classList.add('drag-clone')
+            document.body.append(clone)
+            s.dragClone = document.querySelector('.drag-clone')
+
+            let pos = s.dragItem.getBoundingClientRect()
+            s.startPos = {
+                'offsetX': event.clientX - pos.left,
+                'offsetY': event.clientY - pos.top
+            }
+            s.dragClone.style.left = pos.left + 'px'
+            s.dragClone.style.top = pos.top + 'px'
+
+            document.addEventListener('mouseup', MenuMaker.dropElement)
+            document.addEventListener('mousemove', MenuMaker.dragElement)
+        },
+
+        //
+        dragElement: function(event) {
+            console.log(">> dragElement")
+            if (!s.dragged) {
+                s.dragged = true
+                MenuMaker.grabElement(event)
+            }
+            s.dragClone.style.left = (event.clientX - s.startPos.offsetX) + 'px' 
+            s.dragClone.style.top = (event.clientY - s.startPos.offsetY) + 'px'
+        },
+
+        //
+        dropElement: function(event) {
+            console.log(">> dropElement")
+            if (s.dragged) {
+                console.log("DRAGGED")
+                s.dragged = false
+                s.dragItem.classList.remove('drag-item')
+                s.dragClone.remove()
+                s.dragItem = null
+                s.dragClone = null
+            } else {
+                console.log("NO DRAG")
+                MenuMaker.selectTableItem(event)
+            }
+            document.removeEventListener('mousemove', MenuMaker.dragElement)
+            document.removeEventListener('mouseup', MenuMaker.dropElement)
         },
 
 

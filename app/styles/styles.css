@@ -571,7 +571,7 @@ body {
 .table-input,
 .table-item {
     height: 2rem;
-    width: 100%;
+    width: 19.5rem;
     border-radius: 0.2rem;
 }
 
@@ -867,6 +867,28 @@ body {
 .popup-warning.hidden {
     display: none;
 }
+
+
+/* DRAG AND DROP */
+.drag-clone {
+    position: absolute !important;
+    opacity: 50%;
+    cursor: crosshair;
+    z-index: 100;
+    margin-top: 0;
+}
+.drag-clone * {
+    cursor: crosshair;
+}
+
+.drag-item {
+    opacity: 50%;
+}
+
+
+
+
+
 
 
 
