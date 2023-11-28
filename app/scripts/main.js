@@ -61,8 +61,9 @@ document.addEventListener('DOMContentLoaded', function() {
             //
             'dragItem': null,
             'dragClone': null,
-            'startPos': {},
             'dragged': false,
+            'startPos': {},
+            'lastHover': '',
         },
 
         // Site init
@@ -869,7 +870,6 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         grabElement: function(event) {
             console.log(">> grabElement")
-            if (s.editModeActive) { return }
             s.dragItem = event.target.closest('.table-item')
             let clone = s.dragItem.cloneNode(true)
             s.dragItem.classList.add('drag-item')
@@ -898,24 +898,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             s.dragClone.style.left = (event.clientX - s.startPos.offsetX) + 'px' 
             s.dragClone.style.top = (event.clientY - s.startPos.offsetY) + 'px'
+
+            // Detect when mouse enters a valid drop point, update DOM
+            s.dragClone.style.visibility = 'hidden'
+            let hoverElement = document.elementFromPoint(event.clientX, event.clientY)
+            s.dragClone.style.visibility = 'visible'
+            if (s.lastHover !== hoverElement.classList[0]) {
+                s.lastHover = hoverElement.classList[0]
+                let validDrop = MenuMaker.isValidDrop(hoverElement)
+                console.log("VALID DROP:  " + validDrop)
+
+            }
+            
         },
 
         //
         dropElement: function(event) {
             console.log(">> dropElement")
+            //console.log("DRAGGED:  " + s.dragged)
             if (s.dragged) {
-                console.log("DRAGGED")
                 s.dragged = false
                 s.dragItem.classList.remove('drag-item')
                 s.dragClone.remove()
                 s.dragItem = null
                 s.dragClone = null
             } else {
-                console.log("NO DRAG")
                 MenuMaker.selectTableItem(event)
             }
             document.removeEventListener('mousemove', MenuMaker.dragElement)
             document.removeEventListener('mouseup', MenuMaker.dropElement)
+        },
+
+        //
+        isValidDrop: function(hoverElement) {
+            console.log(">> isValidDrop")
+            console.log(hoverElement.classList)
+            
+            return false
         },
 
 
