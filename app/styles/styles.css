@@ -198,6 +198,11 @@ body {
     flex-grow: 1;
 }
 
+.group-container.hidden,
+.dish-build-container.hidden {
+    display: none;
+}
+
 .group-selector {
     position: relative;
     height: 3rem;
@@ -416,6 +421,21 @@ body {
 .build-id::placeholder,
 .build-title::placeholder {
     color: var(--placeholderText);
+}
+
+.item-delete-overlay {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background-color: rgb(138, 19, 19);
+}
+
+.item-delete-overlay.drop {
+    background-color: red;
+}
+
+.item-delete-overlay.hidden {
+    display: none;
 }
 
 
