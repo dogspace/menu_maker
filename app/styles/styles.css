@@ -1,7 +1,7 @@
 
 :root {
     --background1: #303040;
-    --background2: #00000040;
+    --background2: #242430;
     --groupSelectorBackground: #839496;
     --groupDropdownBackground: #000000;
     --groupNameBackground: #576263;
@@ -70,7 +70,7 @@ body {
     width: 100%;
     top: 0;
     left: 0;
-    border-bottom: 0.25rem solid var(--text1-50);
+    border-bottom: 0.2rem solid var(--text1-50);
     z-index: 10;
 }
 
@@ -89,7 +89,7 @@ body {
 .title span {
     color: red;
     margin: 0 2rem;
-    font-size: 1.5rem;
+    font-size: 1rem;
 }
 
 .settings {
@@ -180,40 +180,38 @@ body {
 }
 
 .controls {
+    position: relative;
     display: flex;
     flex-flow: row wrap;
     justify-content: space-evenly;
-    min-height: 8rem;
-    max-height: 16rem;
+    align-items: center;
+    align-content: center;
+    height: 10.5rem;
     width: 100%;
+    padding-top: 0.5rem;
     z-index: 2;
 }
 
 .group-container,
 .dish-build-container {
     position: relative;
-    min-width: 35rem;
-    max-width: 40rem;
-    height: 8rem;
-    flex-grow: 1;
+    width: min(35rem, 100%);
+    margin: 0.25rem 1rem 0.25rem 1rem;
 }
 
-.group-container.hidden,
-.dish-build-container.hidden {
-    display: none;
+.group-container {
+    height: 3rem;
 }
 
 .group-selector {
     position: relative;
     height: 3rem;
-    width: 80%;
     min-width: 24rem;
     max-width: 40rem;
-    margin: 2.5rem 10%;
     background-color: var(--groupSelectorBackground);
     border-radius: 0.2rem;
     cursor: pointer;
-    z-index: 3;
+    z-index: 2;
 }
 
 .group-selector::before {
@@ -251,14 +249,12 @@ body {
     flex-flow: column nowrap;
     justify-content: space-around;
     position: absolute;
-    top:5.5rem;
-    width: 80%;
+    width: 100%;
     min-width: 24rem;
     max-width: 40rem;
-    margin: 0 10%;
     border-radius: 0 0 0.2rem 0.2rem;
     background-color: var(--groupDropdownBackground);
-    z-index: 3;
+    z-index: 2;
 }
 
 .group-dropdown.hidden {
@@ -332,6 +328,7 @@ body {
     flex-flow: row nowrap;
     justify-content: center;
     align-items: center;
+    height: 6rem;
 }
 
 .dish-build-container .build-deselect,
@@ -366,6 +363,7 @@ body {
     position: relative;
     width: calc(80% - 7rem);
     margin: 0 0.5rem;
+    flex-grow: 1;
 }
 
 .build-id,
@@ -424,25 +422,29 @@ body {
 }
 
 .item-delete-overlay {
-    display: block;
+    position: absolute;
     height: 100%;
     width: 100%;
-    background-color: rgb(138, 19, 19);
+    background-color: rgb(87, 13, 13);
+    opacity: 0.75;
+    transition: opacity .2s linear;
+    z-index: 3;
 }
 
 .item-delete-overlay.drop {
+    opacity: 1;
     background-color: red;
 }
 
 .item-delete-overlay.hidden {
-    display: none;
+    max-height: 0;
+    opacity: 0;
 }
 
 
 .tables {
     position: relative;
-    min-height: calc(100% - 16rem);
-    max-height: calc(100% - 8rem);
+    height: calc(100% - 10.5rem);
     width: 100%;
     flex-grow: 1;
     overflow-y: hidden;

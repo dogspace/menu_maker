@@ -62,8 +62,10 @@ document.addEventListener('DOMContentLoaded', function() {
             'popupBody': document.querySelector('.popup-body'),
             'popupOverlay': document.querySelector('.popup-overlay'),
             //
+            'clickItem': null,
             'dragItem': null,
             'dragClone': null,
+            'dropBox': null,
             'dragged': false,
             'startPos': {},
             'lastHover': '',
@@ -176,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             tableItems = document.querySelectorAll('.table-item')
-            tableItems.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
+            tableItems.forEach(item => { item.addEventListener('mousedown', MenuMaker.clickElement) })            
             // If edit mode active, call functions to toggle contentEditable for new divs
             if (s.editModeActive) {
                 MenuMaker.toggleTableEditMode()
@@ -296,13 +298,13 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> toggleGroupDropdown")
             s.groupDropdown.classList.toggle('hidden')
             if (s.groupDropdown.classList.contains('hidden')) {
-                document.removeEventListener('click', MenuMaker.checkDropdownClick, true)
+                document.removeEventListener('mousedown', MenuMaker.checkDropdownClick, true)
                 if (s.groupRenameActive) {
                     s.groupRenameActive = false
                     MenuMaker.renameGroup()
                 }
             } else {
-                document.addEventListener('click', MenuMaker.checkDropdownClick, true)
+                document.addEventListener('mousedown', MenuMaker.checkDropdownClick, true)
             }
         },
 
@@ -350,7 +352,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> checkDropdownClick")
             let target = event.target
             if (!s.groupSelector.contains(target) && !s.groupDropdown.contains(target)) {
-                document.removeEventListener('click', MenuMaker.checkDropdownClick, true)
+                document.removeEventListener('mousedown', MenuMaker.checkDropdownClick, true)
                 MenuMaker.toggleGroupDropdown()
             }
         },
@@ -478,7 +480,8 @@ document.addEventListener('DOMContentLoaded', function() {
         updateBuildBox: function() {
             console.log(">> updateBuildBox")
             let itemList = []
-            let selectedItems = document.querySelectorAll('.table-item.selected')
+            let selectedItems = document.querySelectorAll('.table-item.selected:not(.drag-clone)')
+            console.log(selectedItems)
             selectedItems.forEach(item => { itemList.push(item.querySelector('.item-content').innerText) })
             let itemString = itemList.join(', ')
             s.buildItems.innerText = itemString
@@ -626,7 +629,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // UNFINISHED UNFINISHED UNFINISHED
             if (theme == 'DARK') {
                 document.documentElement.style.setProperty('--background1', '#303040')
-                document.documentElement.style.setProperty('--background2', '#00000040')
+                document.documentElement.style.setProperty('--background2', '#242430')
                 document.documentElement.style.setProperty('--groupSelectorBackground', '#839496')
                 document.documentElement.style.setProperty('--groupDropdownBackground', '#000000')
                 document.documentElement.style.setProperty('--groupNameBackground', '#576263')
@@ -645,7 +648,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.documentElement.style.setProperty('--placeholderText', '#8E8E8E')
             } else if (theme == 'LIGHT') {
                 document.documentElement.style.setProperty('--background1', '#E9ECE6')
-                document.documentElement.style.setProperty('--background2', '#0000001a')
+                document.documentElement.style.setProperty('--background2', '#0a0a0a')
                 document.documentElement.style.setProperty('--groupSelectorBackground', '#717f81')
                 document.documentElement.style.setProperty('--groupDropdownBackground', '#FFFFFF')
                 document.documentElement.style.setProperty('--groupNameBackground', '#AFBABB')
@@ -867,6 +870,7 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         clickElement: function(event) {
             console.log(">> clickElement")
+            s.clickItem = event.target
             document.addEventListener('mouseup', MenuMaker.dropElement)
             document.addEventListener('mousemove', MenuMaker.dragElement)
         },
@@ -874,7 +878,8 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         grabElement: function(event) {
             console.log(">> grabElement")
-            s.dragItem = event.target.closest('.table-item')
+            // clickItem used instead of event.target to prevent error if grabbing by border
+            s.dragItem = s.clickItem.closest('.table-item')
             let clone = s.dragItem.cloneNode(true)
             s.dragItem.classList.add('drag-item')
             clone.classList.add('drag-clone')
@@ -904,26 +909,26 @@ document.addEventListener('DOMContentLoaded', function() {
             // Detect when mouse enters a valid drop point, update DOM
             s.dragClone.style.visibility = 'hidden'
             let hoverElement = document.elementFromPoint(event.clientX, event.clientY)
+            if (!hoverElement) { return }
             let hoverClasses = [...hoverElement.classList].join('')
             s.dragClone.style.visibility = 'visible'
             if (s.lastHover !== hoverClasses) {
                 s.lastHover = hoverClasses
-                let dropBox = MenuMaker.isValidDrop(hoverElement)
+                s.dropBox = MenuMaker.isValidDrop(hoverElement)
                 let draggingOverDelete = false
                 // Update DOM while dragging over valid drop locations
-                // Valid locations = delete item box, tables, menu
-                if (dropBox) {
-                    console.log("DROP BOX: ", dropBox)
-                    if (dropBox.classList.contains('controls')) {
+                if (s.dropBox) {
+                    console.log("DROP BOX: ", s.dropBox)
+                    if (s.dropBox.classList.contains('controls')) {
                         s.isHidden = true
                         draggingOverDelete = true
                         s.itemDeleteOverlay.classList.add('drop')
                         s.dragItem.style.display = 'none'
                     }
-                    else if (dropBox.classList.contains('table')) {
-                        let tableDropPos = MenuMaker.getTableDropPos(dropBox, event.clientY)
-                        MenuMaker.insertChildAtIndex(dropBox, tableDropPos)
-                    } else if (dropBox.classList.contains('menu')) {
+                    else if (s.dropBox.classList.contains('table')) {
+                        let tableDropPos = MenuMaker.getTableDropPos(s.dropBox, event.clientY)
+                        MenuMaker.insertChildAtIndex(s.dropBox, tableDropPos)
+                    } else if (s.dropBox.classList.contains('menu')) {
                         console.log("MENU DROP")
                     }
                 }
@@ -941,17 +946,28 @@ document.addEventListener('DOMContentLoaded', function() {
         dropElement: function(event) {
             console.log(">> dropElement")
             if (s.dragged) {
+                if (s.dropBox) {
+                    if (s.dropBox.classList.contains('controls')) {
+                        s.dragItem.remove()
+                    } else if (s.dropBox.classList.contains('table')) {
+                        let activeItems = s.dropBox.querySelectorAll('.table-item.selected')
+                        if (activeItems.length > 1) {
+                            activeItems.forEach(item => { item.classList.remove('selected') })
+                            MenuMaker.updateBuildBox()
+                        }
+                    }
+                }
                 s.dragged = false
                 s.dragItem.classList.remove('drag-item')
                 s.dragClone.remove()
+                s.clickItem = null
                 s.dragItem = null
                 s.dragClone = null
+                s.dropBox = null
                 MenuMaker.toggleItemDeleteOverlay()
                 MenuMaker.cacheActiveTables()
                 MenuMaker.cacheMenu()
                 MenuMaker.sendPost()
-                // Need to determine if item was dropped in delete box
-                
             } else {
                 MenuMaker.selectTableItem(event)
             }
@@ -1004,8 +1020,6 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         toggleItemDeleteOverlay: function() {
             s.itemDeleteOverlay.classList.toggle('hidden')
-            s.groupContainer.classList.toggle('hidden')
-            s.buildContainer.classList.toggle('hidden')
         },
 
 
