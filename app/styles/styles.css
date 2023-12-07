@@ -2,9 +2,6 @@
 :root {
     --background1: #303040;
     --background2: #242430;
-    --groupSelectorBackground: #839496;
-    --groupDropdownBackground: #000000;
-    --groupNameBackground: #576263;
     --dishBuilderBackground: #00000080;
     --tableBackground: #000000;
     --tableItemBackground: #000000;
@@ -66,7 +63,7 @@ body {
 
 .header {
     position: absolute;
-    height: 4rem;
+    height: 3.5rem;
     width: 100%;
     top: 0;
     left: 0;
@@ -76,12 +73,12 @@ body {
 
 .title {
     position: absolute;
-    height: 2rem;
+    height: 3.5rem;
     top: 0;
     left: 0;
-    margin: 1rem 2rem;
+    margin: 0 2rem;
     font-size: 2rem;
-    line-height: 2rem;
+    line-height: 3.5rem;
     color: var(--text1);
 }
 
@@ -94,10 +91,11 @@ body {
 
 .settings {
     position: absolute;
+    height: 2rem;
     width: 6rem;
     top: 0;
     right: 0;
-    margin: 1rem 2rem;
+    margin: 0.75rem 2rem;
     color: var(--text1);
 }
 
@@ -167,168 +165,32 @@ body {
     color: red;
 }
 
-
-.content {
-    display: flex;
-    flex-flow: column nowrap;
-    justify-content: space-between;
-    position: absolute;
-    height: calc(100% - 4rem);
+.settings-separator {
+    height: 0.1rem;
     width: 100%;
-    top: 4rem;
+    margin: 1rem 0;
+    background-color: red;
+}
+
+
+
+.controls {
+    position: absolute;
+    height: 6.5rem;
+    width: 100%;
+    top: 3.5rem;
     left: 0;
 }
 
-.controls {
-    position: relative;
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: space-evenly;
-    align-items: center;
-    align-content: center;
-    height: 10.5rem;
-    width: 100%;
-    padding-top: 0.5rem;
-    z-index: 2;
-}
-
-.group-container,
 .dish-build-container {
     position: relative;
+    height: 6rem;
     width: min(35rem, 100%);
-    margin: 0.25rem 1rem 0.25rem 1rem;
-}
-
-.group-container {
-    height: 3rem;
-}
-
-.group-selector {
-    position: relative;
-    height: 3rem;
-    min-width: 24rem;
-    max-width: 40rem;
-    background-color: var(--groupSelectorBackground);
-    border-radius: 0.2rem;
-    cursor: pointer;
-    z-index: 2;
-}
-
-.group-selector::before {
-    content: "";
-    position: absolute;
-    height: 3rem;
-    width: 4.5rem;
-    right: 0;
-    top: 0;
-    border-radius: 0 0.2rem 0.2rem 0;
-    background-color: rgba(0, 0, 0, 0.2);
-}
-
-.group-selector::after {
-    content: "\25BC";
-    position: absolute;
-    height: 3rem;
-    right: 1.5rem;
-    line-height: 3rem;
-    font-size: 1.5rem;
-    top: 0;
-    color: rgba(0, 0, 0, 0.30);
-}
-
-.group-selector .active-group-name {
-    font-size: 1.2rem;
-    line-height: 3rem;
-    margin-left: 2.7rem;
-    font-weight: 600;
-    color: var(--text2);
-}
-
-.group-dropdown {
-    display: flex;
-    flex-flow: column nowrap;
-    justify-content: space-around;
-    position: absolute;
-    width: 100%;
-    min-width: 24rem;
-    max-width: 40rem;
-    border-radius: 0 0 0.2rem 0.2rem;
-    background-color: var(--groupDropdownBackground);
-    z-index: 2;
-}
-
-.group-dropdown.hidden {
-    display: none;
-}
-
-.group-item {
-    position: relative;
-    height: 2.5rem;
-    width: calc(100% - 1rem);
-    margin: 0.4rem 0.5rem;
-}
-
-.group-item.active .group-name,
-.group-item.active .group-rename.inactive {
-    color: var(--text2);
-    background-color: var(--groupSelectorBackground);
-}
-
-.group-item.A {
-    margin-top: 0.8rem;
-}
-
-.group-item:hover .group-name,
-.group-item:hover .group-rename.inactive {
-    background-color: var(--groupSelectorBackground);
-}
-
-.group-name {
-    position: relative;
-    width: calc(100% - 4rem);
-    font-size: 1.2rem;
-    line-height: 2.5rem;
-    padding-left: 2rem;
-    font-weight: 600;
-    border-radius: 0.25rem 0 0 0.25rem;
-    background-color: var(--groupNameBackground);
-    cursor: pointer;
-    color: white;
-}
-
-.group-rename {
-    position: absolute;
-    top: 0;
-    right: 0;
-    height: 2.5rem;
-    width: 3.5rem;
-    border-radius: 0 0.25rem 0.25rem 0;
-    background-color: red;
-    cursor: pointer;
-}
-
-.group-rename.inactive {
-    background-color: rgba(131, 148, 150, 50%);
-}
-
-.group-rename svg {
-    height: 1.5rem;
-    width: 2rem;
-    margin: 0.5rem 0.75rem;
-    fill: black;
-}
-
-.group-rename.inactive:hover svg {
-    fill: red;
-}
-
-
-.dish-build-container {
+    margin: auto;
     display: flex;
     flex-flow: row nowrap;
     justify-content: center;
     align-items: center;
-    height: 6rem;
 }
 
 .dish-build-container .build-deselect,
@@ -421,36 +283,17 @@ body {
     color: var(--placeholderText);
 }
 
-.item-delete-overlay {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    background-color: rgb(87, 13, 13);
-    opacity: 0.75;
-    transition: opacity .2s linear;
-    z-index: 3;
-}
-
-.item-delete-overlay.drop {
-    opacity: 1;
-    background-color: red;
-}
-
-.item-delete-overlay.hidden {
-    max-height: 0;
-    opacity: 0;
-}
 
 
 .tables {
-    position: relative;
-    height: calc(100% - 10.5rem);
+    position: absolute;
+    height: calc(100% - 10rem);
     width: 100%;
-    flex-grow: 1;
+    top: 10rem;
+    left: 0;
     overflow-y: hidden;
     overflow-x: auto;
     background-color: var(--background2);
-    z-index: 1;
 }
 
 .table {
@@ -462,10 +305,6 @@ body {
     top: 2rem;
     margin: 0 2rem;
     overflow-y: auto;
-}
-
-.table.hidden {
-    display: none;
 }
 
 .table:nth-child(1) {
@@ -519,64 +358,27 @@ body {
     color: var(--text1);
 }
 
-.table-control-icon {
+.create-table-group {
     position: absolute;
     height: 2.5rem;
     width: 2rem;
     top: 0;
     right: 0;
+}
+
+.create-table-group:not(.inactive) {
     cursor: pointer;
 }
 
-.table-control-icon svg {
+.create-table-group svg {
     height: 1.75rem;
     width: 2rem;
     margin: 0.375rem 0;
+    fill: gray;
+}
+
+.create-table-group:not(.inactive) svg {
     fill: red;
-}
-
-.table-control-menu {
-    position: absolute;
-    background-color: var(--popupBackground);
-    width: max-content;
-    right: 1rem;
-    top: 100%;
-    border: 0.2rem solid var(--text1-50);
-    border-radius: 0.5rem;
-    z-index: 2;
-    color: var(--text1);
-}
-
-.table-control-menu.hidden {
-    display: none;
-}
-
-.table-control-item {
-    height: 2.5rem;
-    line-height: 2.35rem;
-    margin: 0.5rem 0.5rem;
-    padding: 0 1rem;
-    border: 0.15rem solid var(--popupBorder);
-    border-radius: 0.5rem;
-    background-color: var(--popupRowBackground);
-    cursor: pointer;
-}
-
-.table-control-item:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
-}
-
-.table-groups span {
-    float: right;
-    padding-left: 1rem;
-    line-height: 2.35rem;
-    color: #c1c1c1;
-    font-weight: bold;
-}
-
-.table-groups:hover span {
-    color: red;
 }
 
 .table-body {
@@ -666,6 +468,7 @@ body {
 }
 
 
+/* MENU */
 .menu {
     display: flex;
     flex-flow: column nowrap;
@@ -691,11 +494,11 @@ body {
     display: none;
 }
 
+/* 
 .menu-group {
     display: flex;
     flex-flow: column nowrap;
     width: 50%;
-    /* margin: 3rem 0; */
 }
 
 .menu-group.hidden {
@@ -733,6 +536,7 @@ body {
     min-height: 4rem;
     align-self: center;
 }
+*/
 
 .menu-dish {
     position: relative;
@@ -806,6 +610,7 @@ body {
 }
 
 
+/* MENU BUTTON */
 .menu-button {
     position: absolute;
     height: 8rem;
@@ -829,6 +634,7 @@ body {
 }
 
 
+/* IMPORT DATA WARNING POPUP MESSAGE*/
 .popup-container.hidden {
     display: none;
 }
@@ -908,9 +714,28 @@ body {
 }
 
 
+/* ITEM DELETE OVERLAY (SHOWS WHILE DRAGGIN TABLE ITEMS) */
+.item-delete-overlay {
+    position: absolute;
+    height: 10rem;
+    width: 100%;
+    top: 0;
+    left: 0;
+    background-color: rgb(87, 13, 13);
+    opacity: 0.75;
+    transition: opacity .2s linear;
+    z-index: 10;
+}
 
+.item-delete-overlay.drop {
+    opacity: 1;
+    background-color: red;
+}
 
-
+.item-delete-overlay.hidden {
+    max-height: 0;
+    opacity: 0;
+}
 
 
 

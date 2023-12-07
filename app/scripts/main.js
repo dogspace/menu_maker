@@ -4,34 +4,33 @@ document.addEventListener('DOMContentLoaded', function() {
     MenuMaker = {
         settings: {
             // JS copy of session data, updated and POSTed to Flask
-            'sessionData': session,
-            'sessionKeys': ['names', 'tables', 'menu', 'settings'],
-            'groupIndex': 0,
+            //'sessionData': session,
+            'sessionKeys': ['tables', 'menu', 'archive', 'settings'],
             // Header
             'editModeButton': document.querySelector('.edit-icon'),
             'editModeActive': false,
-            'groupRenameActive': false,
             'settingsButton': document.querySelector('.settings-icon'),
             'settingsMenu': document.querySelector('.settings-menu'),
             'colorThemeButton': document.querySelector('.color-theme'),
             'colorThemeSpan': document.querySelector('.color-theme span'),
-            'splitMenuButton': document.querySelector('.split-menu'),
-            'splitMenuSpan': document.querySelector('.split-menu span'),
-            'exportDataButton': document.querySelector('.export-data'),
+            'groupTablesButton': document.querySelector('.group-tables'),
+            'groupTablesSpan': document.querySelector('.group-tables span'),
+            'groupMenuButton': document.querySelector('.group-menu'),
+            'groupMenuSpan': document.querySelector('.group-menu span'),
+            'numberMenuButton': document.querySelector('.number-menu'),
+            'numberMenuSpan': document.querySelector('.number-menu span'),
+            'dishSpawnLocButton': document.querySelector('.dish-spawn-loc'),
+            'dishSpawnLocSpan': document.querySelector('.dish-spawn-loc span'),
+
             'importDataButton': document.querySelector('.import-data'),
+            'exportDataButton': document.querySelector('.export-data'),
+            'deleteTablesButton': document.querySelector('.delete-tables'),
+            'deleteMenuButton': document.querySelector('.delete-menu'),
+            'deleteArchiveButton': document.querySelector('.delete-archive'),
             'deleteAllButton': document.querySelector('.delete-all'),
             'colorOrder': ['DARK', 'LIGHT', 'GREY', 'SEPIA'],
-            // Group dropdown selector, dish builder, and delete overlay
+            // Dish builder and delete overlay
             'controls': document.querySelector('.controls'),
-            'groupContainer': document.querySelector('.group-container'),
-            'groupSelector': document.querySelector('.group-selector'),
-            'groupSelectorName': document.querySelector('.active-group-name'),
-            'groupDropdown': document.querySelector('.group-dropdown'),
-            'groupItems': document.querySelectorAll('.group-item'),
-            'groupNames': document.querySelectorAll('.group-name'),
-            'groupRenameButtons': document.querySelectorAll('.group-rename'),
-            'groupOrder': ['A', 'B', 'C', 'D', 'E'],
-            'oldGroupName': '',
             'buildContainer': document.querySelector('.dish-build-container'),
             'buildInfo': document.querySelector('.build-info'),
             'buildID': document.querySelector('.build-id'),
@@ -43,10 +42,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Tables
             'tablesContainer': document.querySelector('.tables'),
             'tables': document.querySelectorAll('.table'),
-            'tableHeaders': document.querySelectorAll('.table-header'),
-            'tableControlButtons': document.querySelectorAll('.table-control-icon'),
-            'tableControlMenus': document.querySelectorAll('.table-control-menu'),
-            'tableDeleteButtons': document.querySelectorAll('.table-delete'),
+            'tableTitles': document.querySelectorAll('.table-title'),
+            'createTableGroupButtons': document.querySelectorAll('.create-table-group'),
             'tableInputs': document.querySelectorAll('.table-input'),
             'tableOrder': ['_0', '_1', '_2', '_3', '_4', '_5', '_6', '_7', '_8', '_9'],
             // Menu
@@ -76,12 +73,12 @@ document.addEventListener('DOMContentLoaded', function() {
         init: function() {
             console.log('>> >> >> >> >> >>>>   init   <<<< << << << << <<')
             s = MenuMaker.settings
-            console.log(s.sessionData)
+            console.log(session)
             MenuMaker.updateWithSessionData()
-            MenuMaker.bindStaticUIActions()
-            MenuMaker.bindDynamicUIActions()
-            MenuMaker.setColorTheme()
-            MenuMaker.setMenuSplit()
+            // MenuMaker.bindStaticUIActions()
+            // MenuMaker.bindDynamicUIActions()
+            // MenuMaker.setColorTheme()
+            // MenuMaker.setMenuSplit()
         },
 
         // Bind Static UI actions (called at init)
@@ -90,16 +87,18 @@ document.addEventListener('DOMContentLoaded', function() {
             s.editModeButton.addEventListener('click', MenuMaker.toggleEditMode)
             s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
             s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
-            s.splitMenuButton.addEventListener('click', MenuMaker.toggleMenuSplit)
-            s.exportDataButton.addEventListener('click', MenuMaker.exportData)
+            s.groupTablesButton.addEventListener('click', MenuMaker.toggleTableSplit)
+            s.groupMenuButton.addEventListener('click', MenuMaker.toggleMenuSplit)
+            s.numberMenuButton.addEventListener('click', MenuMaker.toggleMenuNumbers)
+            s.dishSpawnLocButton.addEventListener('click', MenuMaker.setDishSpawn)
             s.importDataButton.addEventListener('click', MenuMaker.importData)
+            s.exportDataButton.addEventListener('click', MenuMaker.exportData)
+            s.deleteTablesButton.addEventListener('click', MenuMaker.deleteAllTables)
+            s.deleteMenuButton.addEventListener('click', MenuMaker.deleteMenu)
+            s.deleteArchiveButton.addEventListener('click', MenuMaker.deleteArchive)
+            s.deleteAllButton.addEventListener('click', MenuMaker.deleteEverything)
 
             s.menuButton.addEventListener('click', MenuMaker.openMenu)
-
-            s.groupSelector.addEventListener('click', MenuMaker.toggleGroupDropdown)
-            s.groupRenameButtons.forEach(button => { button.addEventListener('click', MenuMaker.renameGroup) })
-            s.groupNames.forEach(group => { group.addEventListener('click', MenuMaker.changeGroup) })
-
             s.buildID.addEventListener('keydown', MenuMaker.checkKeypress, true)
             s.buildTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
             s.buildAdd.addEventListener('click', MenuMaker.createNewMenuDish)
@@ -113,78 +112,66 @@ document.addEventListener('DOMContentLoaded', function() {
         // Bind dynamic UI actions (called at init and after creating a new table/menu item)
         bindDynamicUIActions: function() {
             let tableItems = document.querySelectorAll('.table-item')
-            //tableItems.forEach(item => { item.addEventListener('click', MenuMaker.selectTableItem) })
             tableItems.forEach(item => { item.addEventListener('mousedown', MenuMaker.clickElement) })
 
-            let dishDeleteButtons = s.menu.querySelectorAll('.dish-delete')
-            dishDeleteButtons.forEach(button => { button.addEventListener('click', MenuMaker.deleteMenuDish) })
+            //let dishDeleteButtons = s.menu.querySelectorAll('.dish-delete')
+            //dishDeleteButtons.forEach(button => { button.addEventListener('click', MenuMaker.deleteMenuDish) })
         },
 
-        // Updates site with session data, [[assumes group 1 is set, not saving active group to session]]
+        // Updates site with session data
         updateWithSessionData: function() {
             console.log(">> updateWithSessionData")
-            // Update dropdown button
-            s.groupSelector.querySelector('.active-group-name').innerText = s.sessionData.names[0].group
-            let groupA = document.querySelector('.group-item.A')
-            if (!groupA.classList.contains('active')) {
-                let activeGroup = document.querySelector('.group-item.active')
-                activeGroup.classList.remove('active')
-                groupA.classList.add('active')
-            }
-            // Update group names
-            for (let x = 0; x < 5; x++) {
-                s.groupNames[x].innerText = s.sessionData.names[x].group
-            }
             // Update tables
             for (let x = 0; x < 10; x++) {
-                s.tables[x].querySelector('.table-title').innerText = s.sessionData.names[0].tables[x]
-                // Create table items
-                let itemCount = s.sessionData.tables[0][x].length
-                for (let y = 0; y < itemCount; y++) {
-                    let newItem = MenuMaker.createTableItemHTML(s.sessionData.tables[0][x][y])
-                    s.tables[x].querySelector('.table-items').innerHTML += newItem
+                let tableTitle = s.tables[x].querySelector('.table-title')
+                let tableItems = s.tables[x].querySelector('.table-items')
+                console.log(session.tables[x].name)
+                // Update table name
+                tableTitle.innerText = session.tables[x].name
+                // Create groups and fill with items
+                let tableGroups = session.tables[x].groups
+                for (let y = 0; y < tableGroups.length; y++) {
+                    let groupName = tableGroups[y][0]
+                    let groupItems = tableGroups[y][1]
+                    console.log('GROUPNAME: ' + groupName + '   GROUPITEMS: ', groupItems)
+                    // Create group if not ungrouped
+                    if (groupName != 'ungrouped') {
+                        let newGroup = MenuMaker.createTableGroupHTML(groupName)
+                        tableItems.innerHTML += newGroup
+                    }
+                    // Confirm group exists
+                    let thisGroup = document.querySelector('.table-group.' + groupName)
+                    if (!thisGroup) {
+                        console.warn("ERROR: THIS GROUP NOT FOUND")
+                        return
+                    }
+                    console.log(thisGroup)
+                    for (let z = 0; z < groupItems.length; z++) {
+                        let newItem = MenuMaker.createTableItemHTML(groupItems[z])
+                        thisGroup.innerHTML += newItem
+                    }
+                    console.log("---------------------next group")
                 }
+                console.log("-------------------------------------------------------next table")
             }
             // Update menu
-            for (let x = 0; x < 5; x++) {
-                s.menuGroups[x].querySelector('.menu-group-name').innerText = s.sessionData.names[x].group
-                let dishCount = s.sessionData.menu[x].length
-                // Hide group name if no dishes and menu split setting is on, else create dishes
-                if (dishCount == 0 && s.sessionData.settings.split_menu == 0) {
-                    s.menuGroupNames[x].classList.add('hidden')
-                } else {
-                    let dishContainer = s.menuGroups[x].querySelector('.menu-group-dishes')
-                    for (let y = 0; y < dishCount; y++) {
-                        let dish = s.sessionData.menu[x][y]
-                        let newDish = MenuMaker.createMenuDishHTML(dish.id, dish.title, dish.items)
-                        dishContainer.innerHTML += newDish
-                    }
-                }
-            }
-        },
-
-        // Called when changing table group, creates tables based on session
-        updateTables: function() {
-            console.log(">> updateTables")
-            let tableItems = document.querySelectorAll('.table-item')
-            tableItems.forEach(item => { item.remove() })
-            for (let x = 0; x < 10; x++) {
-                s.tables[x].querySelector('.table-title').innerText = s.sessionData.names[s.groupIndex].tables[x]
-                // Create table items
-                let itemCount = s.sessionData.tables[s.groupIndex][x].length
-                for (let y = 0; y < itemCount; y++) {
-                    let newItem = MenuMaker.createTableItemHTML(s.sessionData.tables[s.groupIndex][x][y])
-                    s.tables[x].querySelector('.table-items').innerHTML += newItem
-                }
-            }
-            tableItems = document.querySelectorAll('.table-item')
-            tableItems.forEach(item => { item.addEventListener('mousedown', MenuMaker.clickElement) })            
-            // If edit mode active, call functions to toggle contentEditable for new divs
-            if (s.editModeActive) {
-                MenuMaker.toggleTableEditMode()
-                MenuMaker.toggleMenuEditMode()
-                MenuMaker.toggleButtonsEditMode()
-            }
+    
+            // // Update menu
+            // for (let x = 0; x < 5; x++) {
+            //     s.menuGroups[x].querySelector('.menu-group-name').innerText = s.sessionData.names[x].group
+            //     let dishCount = s.sessionData.menu[x].length
+            //     // Hide group name if no dishes and menu split setting is on, else create dishes
+            //     if (dishCount == 0 && s.sessionData.settings.split_menu == 0) {
+            //         s.menuGroupNames[x].classList.add('hidden')
+            //     } else {
+            //         let dishContainer = s.menuGroups[x].querySelector('.menu-group-dishes')
+            //         for (let y = 0; y < dishCount; y++) {
+            //             let dish = s.sessionData.menu[x][y]
+            //             let newDish = MenuMaker.createMenuDishHTML(dish.id, dish.title, dish.items)
+            //             dishContainer.innerHTML += newDish
+            //         }
+            //     }
+            // }
         },
 
         // Creates a new table item based on table input field
@@ -209,11 +196,17 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         //
-        createTableItemHTML: function(text) {
+        createTableGroupHTML: function(groupName) {
+            return `
+                <div class="table-group ` + groupName + `"></div>`
+        },
+
+        //
+        createTableItemHTML: function(itemText) {
             return `
                 <div class="table-item">
                     <div class="item-checkbox"><span class="circle"></span></div>
-                    <div class="item-content">` + text + `</div>
+                    <div class="item-content">` + itemText + `</div>
                 </div>`
         },
 
@@ -268,8 +261,8 @@ document.addEventListener('DOMContentLoaded', function() {
         deleteMenuDish: function(event) {
             console.log(">> deleteMenuDish")
             let dish = event.target.closest('.menu-dish')
-            let group = dish.parentElement
-            group.removeChild(dish)
+            let menuGroup = dish.parentElement
+            menuGroup.removeChild(dish)
             MenuMaker.cacheMenu()
             MenuMaker.sendPost()
         },
@@ -291,101 +284,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!s.settingsMenu.contains(event.target) && !s.settingsButton.contains(event.target)) {
                 MenuMaker.toggleSettingsMenu()
             }
-        },
-
-        // Toggle dropdown menu, assign temporary listener if opened
-        toggleGroupDropdown: function() {
-            console.log(">> toggleGroupDropdown")
-            s.groupDropdown.classList.toggle('hidden')
-            if (s.groupDropdown.classList.contains('hidden')) {
-                document.removeEventListener('mousedown', MenuMaker.checkDropdownClick, true)
-                if (s.groupRenameActive) {
-                    s.groupRenameActive = false
-                    MenuMaker.renameGroup()
-                }
-            } else {
-                document.addEventListener('mousedown', MenuMaker.checkDropdownClick, true)
-            }
-        },
-
-        //
-        renameGroup: function(event) {
-            let button, groupName
-            if (!event) {
-                button = document.querySelector('.group-rename:not(.inactive)')
-                groupName = button.closest('.group-item').querySelector('.group-name')
-            } else {
-                button = event.target.closest('.group-rename')
-                groupName = event.target.closest('.group-item').querySelector('.group-name')
-            }
-            let groupItem = groupName.parentElement
-            button.classList.toggle('inactive')
-            let groupEditActive = !button.classList.contains('inactive')
-            if (groupEditActive) {
-                s.oldGroupName = groupName.innerText
-                s.groupRenameActive = true
-                groupName.style.cursor = 'text'
-                groupName.contentEditable = true
-                groupName.focus()
-                window.getSelection().selectAllChildren(groupName)
-                window.getSelection().collapseToEnd()
-                groupName.addEventListener('keydown', MenuMaker.checkKeypress, true)
-            } else {
-                s.groupRenameActive = false
-                groupName.style.cursor = 'pointer'
-                groupName.contentEditable = false
-                groupName.removeEventListener('keydown', MenuMaker.checkKeypress, true)
-                // Update menu and session if group was renamed
-                let newName = groupName.innerText
-                if (newName != s.oldGroupName) {
-                    if (groupItem.classList.contains('active')) { s.groupSelectorName.innerText = newName }
-                    let g = s.groupOrder.indexOf(groupItem.classList[1])
-                    s.menuGroupNames[g].innerText = newName
-                    s.sessionData.names[g].group = newName
-                    MenuMaker.sendPost()
-                }
-            }
-        },
-
-        // Listener, runs while dropdown is open, ends when user clicks outside of dropdown
-        checkDropdownClick: function(event) {
-            console.log(">> checkDropdownClick")
-            let target = event.target
-            if (!s.groupSelector.contains(target) && !s.groupDropdown.contains(target)) {
-                document.removeEventListener('mousedown', MenuMaker.checkDropdownClick, true)
-                MenuMaker.toggleGroupDropdown()
-            }
-        },
-
-        // Change active table group, fill in values from session
-        changeGroup: function(event) {
-            console.log(">> changeGroup")
-            let newGroup = event.target.closest('.group-item')
-            // Return if clicked group is already active or is being renamed
-            if (newGroup.classList.contains('active')) { return }
-            if (s.groupRenameActive) {
-                let groupRenameButton = newGroup.querySelector('.group-rename')
-                // Return if user clicks active group rename button
-                if (!groupRenameButton.classList.contains('inactive')) { return }
-                // Turn off group rename if user clicks anywhere outside of editable group name
-                else {
-                    s.groupEditActive = false
-                    MenuMaker.renameGroup()
-                }
-            }
-            // If edit mode is active, update session
-            if (s.editModeActive) {
-                MenuMaker.cacheActiveTables()
-                MenuMaker.sendPost()
-            }
-            MenuMaker.deselectAllItems()
-            let oldGroup = s.groupDropdown.querySelector('.group-item.active')
-            oldGroup.classList.toggle('active')
-            newGroup.classList.toggle('active')
-            let newGroupName = newGroup.querySelector('.group-name').innerText
-            s.groupSelectorName.innerText = newGroupName
-            s.groupIndex = s.groupOrder.indexOf(newGroup.classList[1])
-            MenuMaker.updateTables()
         },
 
         //
@@ -630,9 +528,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (theme == 'DARK') {
                 document.documentElement.style.setProperty('--background1', '#303040')
                 document.documentElement.style.setProperty('--background2', '#242430')
-                document.documentElement.style.setProperty('--groupSelectorBackground', '#839496')
-                document.documentElement.style.setProperty('--groupDropdownBackground', '#000000')
-                document.documentElement.style.setProperty('--groupNameBackground', '#576263')
                 document.documentElement.style.setProperty('--dishBuilderBackground', '#00000080')
                 document.documentElement.style.setProperty('--tableBackground', '#000000')
                 document.documentElement.style.setProperty('--tableItemBackground', '#000000')
@@ -649,9 +544,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (theme == 'LIGHT') {
                 document.documentElement.style.setProperty('--background1', '#E9ECE6')
                 document.documentElement.style.setProperty('--background2', '#0a0a0a')
-                document.documentElement.style.setProperty('--groupSelectorBackground', '#717f81')
-                document.documentElement.style.setProperty('--groupDropdownBackground', '#FFFFFF')
-                document.documentElement.style.setProperty('--groupNameBackground', '#AFBABB')
                 document.documentElement.style.setProperty('--dishBuilderBackground', '#717f81')
                 document.documentElement.style.setProperty('--tableBackground', '#717f81')
                 document.documentElement.style.setProperty('--tableItemBackground', '#FFFFFF')
@@ -687,16 +579,16 @@ document.addEventListener('DOMContentLoaded', function() {
         setMenuSplit: function() {
             console.log(">> setMenuSplit")
             let split = ['ON', 'OFF'][s.sessionData.settings.split_menu]
-            s.splitMenuSpan.innerText = split
-            if (split == 'ON') {
-                for (let x = 0; x < 5; x++) {
-                    let dishCount = s.sessionData.menu[x].length
-                    if (dishCount == 0) { s.menuGroupNames[x].classList.add('hidden') }
-                    else { s.menuGroupNames[x].classList.remove('hidden') }
-                }
-            } else {
-                s.menuGroupNames.forEach(group => group.classList.add('hidden'))
-            }
+            s.groupMenuSpan.innerText = split
+            // if (split == 'ON') {
+            //     for (let x = 0; x < 5; x++) {
+            //         let dishCount = s.sessionData.menu[x].length
+            //         if (dishCount == 0) { s.menuGroupNames[x].classList.add('hidden') }
+            //         else { s.menuGroupNames[x].classList.remove('hidden') }
+            //     }
+            // } else {
+            //     s.menuGroupNames.forEach(group => group.classList.add('hidden'))
+            // }
         },
 
         // Export data, converts session into a base64 encoded string for user to copy
