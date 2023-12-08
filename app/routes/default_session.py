@@ -91,11 +91,11 @@ DEFAULT_SESSION_TESTING = {
         }
     ],
 
-    'menu': {
-        'ungrouped': [],
-        'Starters': [{'id': 'S1', 'title': 'Starter1', 'items': 'Item1, item2, item3'}, {'id': 'S2', 'title': 'Starter2', 'items': 'Item1, item2, item3'}],
-        'Entrees': [{'id': 'E1', 'title': 'Entree1', 'items': 'Item1, item2, item3'}, {'id': 'E2', 'title': 'Entree2', 'items': 'Item1, item2, item3'}],        
-    },
+    'menu': [
+        ['ungrouped', [{'id': 'UG1', 'title': 'Other1', 'items': 'Item1, item2, item3'}]],
+        ['Starters', [{'id': 'S1', 'title': 'Starter1', 'items': 'Item1, item2, item3'}, {'id': 'S2', 'title': 'Starter2', 'items': 'Item1, item2, item3'}]],
+        ['Entrees', [{'id': 'E1', 'title': 'Entree1', 'items': 'Item1, item2, item3'}, {'id': 'E2', 'title': 'Entree2', 'items': 'Item1, item2, item3'}]]
+    ],
 
     'archive': [
         {'id': 'A1', 'title': 'Archive1', 'items': 'Item1, item2, item3'},
