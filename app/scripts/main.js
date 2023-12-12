@@ -86,10 +86,10 @@ document.addEventListener('DOMContentLoaded', function() {
         bindStaticUIActions: function() {
             console.log(">> bindStaticUIActions <<")
             s.editModeButton.addEventListener('click', MenuMaker.toggleEditMode)
-            // s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
-            // s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
-            // s.groupTablesButton.addEventListener('click', MenuMaker.toggleTableSplit)
-            // s.groupMenuButton.addEventListener('click', MenuMaker.toggleMenuGroups)
+            s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
+            s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
+            s.groupTablesButton.addEventListener('click', MenuMaker.toggleTableGroups)
+            s.groupMenuButton.addEventListener('click', MenuMaker.toggleMenuGroups)
             // s.numberMenuButton.addEventListener('click', MenuMaker.toggleMenuNumbers)
             // s.dishSpawnLocButton.addEventListener('click', MenuMaker.setDishSpawn)
             // s.importDataButton.addEventListener('click', MenuMaker.importData)
@@ -197,8 +197,8 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         createTableGroupHTML: function(groupName) {
             return `
-                <div class="table-group ` + groupName + `">
-                    <div class="table-group-name hidden">` + groupName + `</div>
+                <div class="table-group hidden ` + groupName + `">
+                    <div class="table-group-name">` + groupName + `</div>
                 </div>`
         },
 
@@ -243,8 +243,8 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         createMenuGroupHTML: function(groupName) {
             return `
-                <div class="menu-group ` + groupName + `">
-                    <div class="menu-group-name hidden">` + groupName + `</div>
+                <div class="menu-group hidden ` + groupName + `">
+                    <div class="menu-group-name">` + groupName + `</div>
                 </div>`
         },
 
@@ -266,24 +266,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>`
         },
 
-        // // Toggle settings menu open/closed
-        // toggleSettingsMenu: function() {
-        //     console.log(">> toggleSettingsMenu")
-        //     s.settingsMenu.classList.toggle('hidden')
-        //     if (s.settingsMenu.classList.contains('hidden')) {
-        //         document.removeEventListener('click', MenuMaker.checkSettingsMenuClick, true)
-        //     } else {
-        //         document.addEventListener('click', MenuMaker.checkSettingsMenuClick, true)
-        //     }
-        // },
+        // Toggle settings menu open/closed
+        toggleSettingsMenu: function() {
+            console.log(">> toggleSettingsMenu")
+            s.settingsButton.classList.toggle('active')
+            s.settingsMenu.classList.toggle('hidden')
+            if (s.settingsMenu.classList.contains('hidden')) {
+                document.removeEventListener('click', MenuMaker.checkSettingsMenuClick, true)
+            } else {
+                document.addEventListener('click', MenuMaker.checkSettingsMenuClick, true)
+            }
+        },
 
-        // // Runs while settings menu is open, toggles off if user clicks outside of menu
-        // checkSettingsMenuClick: function(event) {
-        //     console.log(">> checkSettingsMenuClick")
-        //     if (!s.settingsMenu.contains(event.target) && !s.settingsButton.contains(event.target)) {
-        //         MenuMaker.toggleSettingsMenu()
-        //     }
-        // },
+        // Runs while settings menu is open, toggles off if user clicks outside of menu
+        checkSettingsMenuClick: function(event) {
+            console.log(">> checkSettingsMenuClick")
+            if (!s.settingsMenu.contains(event.target) && !s.settingsButton.contains(event.target)) {
+                MenuMaker.toggleSettingsMenu()
+            }
+        },
 
         // // Deletes all items from a single table
         // deleteTableItems: function(event) {
@@ -464,86 +465,102 @@ document.addEventListener('DOMContentLoaded', function() {
             s.menu.classList.toggle('hidden')
         },
 
-        // // Increments color theme setting, updates session
-        // changeColorTheme: function() {
-        //     console.log(">> changeColorTheme")
-        //     let theme = (session.settings.color_theme + 1) % 4
-        //     session.settings.color_theme = theme
-        //     MenuMaker.setColorTheme()
-        //     MenuMaker.sendPost()
-        // },
+        // Increments color theme setting, updates session
+        changeColorTheme: function() {
+            console.log(">> changeColorTheme")
+            let theme = (session.settings.color_theme + 1) % 4
+            session.settings.color_theme = theme
+            MenuMaker.setColorTheme()
+            //MenuMaker.sendPost()
+        },
 
-        // // Sets site colors based on session
-        // setColorTheme: function() {
-        //     console.log(">> setColorTheme")
-        //     let theme = ['DARK', 'LIGHT', 'GREY', 'SEPIA'][session.settings.color_theme]
-        //     s.colorThemeSpan.innerText = theme
-        //     // UNFINISHED UNFINISHED UNFINISHED
-        //     if (theme == 'DARK') {
-        //         document.documentElement.style.setProperty('--background1', '#303040')
-        //         document.documentElement.style.setProperty('--background2', '#242430')
-        //         document.documentElement.style.setProperty('--dishBuilderBackground', '#00000080')
-        //         document.documentElement.style.setProperty('--tableBackground', '#000000')
-        //         document.documentElement.style.setProperty('--tableItemBackground', '#000000')
-        //         document.documentElement.style.setProperty('--tableItemHover', '#FFFFFF0F')
-        //         document.documentElement.style.setProperty('--menuBackground', '#0C0B18')
-        //         document.documentElement.style.setProperty('--popupBackground', '#000000')
-        //         document.documentElement.style.setProperty('--popupRowBackground', '#FFFFFF1A')
-        //         document.documentElement.style.setProperty('--popupBorder', '#FFFFFF33')
-        //         document.documentElement.style.setProperty('--text1', '#FFFFFF')
-        //         document.documentElement.style.setProperty('--text1-50', '#FFFFFF7F')
-        //         document.documentElement.style.setProperty('--text2', '#000000')
-        //         document.documentElement.style.setProperty('--text3', '#FFFFFF')
-        //         document.documentElement.style.setProperty('--placeholderText', '#8E8E8E')
-        //     } else if (theme == 'LIGHT') {
-        //         document.documentElement.style.setProperty('--background1', '#E9ECE6')
-        //         document.documentElement.style.setProperty('--background2', '#0a0a0a')
-        //         document.documentElement.style.setProperty('--dishBuilderBackground', '#717f81')
-        //         document.documentElement.style.setProperty('--tableBackground', '#717f81')
-        //         document.documentElement.style.setProperty('--tableItemBackground', '#FFFFFF')
-        //         document.documentElement.style.setProperty('--tableItemHover', '#FFFFFFBF')
-        //         document.documentElement.style.setProperty('--menuBackground', '#DAE2E3')
-        //         document.documentElement.style.setProperty('--popupBackground', '#FFFFFF')
-        //         document.documentElement.style.setProperty('--popupRowBackground', '#0000001A')
-        //         document.documentElement.style.setProperty('--popupBorder', '#00000033')
-        //         document.documentElement.style.setProperty('--text1', '#000000')
-        //         document.documentElement.style.setProperty('--text1-50', '#0000007F')
-        //         document.documentElement.style.setProperty('--text2', '#FFFFFF')
-        //         document.documentElement.style.setProperty('--text3', '#FFFFFF')
-        //         document.documentElement.style.setProperty('--placeholderText', '#FFFFFFBF')
-        //     } else if (theme == 'GREY') {
-        //         document.documentElement.style.setProperty('--background1', '#737373')
+        // Sets site colors based on session
+        setColorTheme: function() {
+            console.log(">> setColorTheme")
+            let theme = ['DARK', 'LIGHT', 'GREY', 'SEPIA'][session.settings.color_theme]
+            s.colorThemeSpan.innerText = theme
+            // UNFINISHED UNFINISHED UNFINISHED
+            if (theme == 'DARK') {
+                document.documentElement.style.setProperty('--background1', '#303040')
+                // document.documentElement.style.setProperty('--background2', '#00000033')
+                document.documentElement.style.setProperty('--dishBuilderBackground', '#00000080')
+                document.documentElement.style.setProperty('--tableBackground', '#000000')
+                document.documentElement.style.setProperty('--tableItemBackground', '#000000')
+                document.documentElement.style.setProperty('--tableItemHover', '#FFFFFF0F')
+                document.documentElement.style.setProperty('--menuBackground', '#0C0B18')
+                document.documentElement.style.setProperty('--popupBackground', '#000000')
+                document.documentElement.style.setProperty('--popupRowBackground', '#FFFFFF1A')
+                document.documentElement.style.setProperty('--popupBorder', '#FFFFFF33')
+                document.documentElement.style.setProperty('--text1', '#FFFFFF')
+                document.documentElement.style.setProperty('--text1-50', '#FFFFFF7F')
+                document.documentElement.style.setProperty('--text2', '#000000')
+                document.documentElement.style.setProperty('--text3', '#FFFFFF')
+                document.documentElement.style.setProperty('--placeholderText', '#8E8E8E')
+            } else if (theme == 'LIGHT') {
+                document.documentElement.style.setProperty('--background1', '#E9ECE6')
+                // document.documentElement.style.setProperty('--background2', '#00000033')
+                document.documentElement.style.setProperty('--dishBuilderBackground', '#717f81')
+                document.documentElement.style.setProperty('--tableBackground', '#717f81')
+                document.documentElement.style.setProperty('--tableItemBackground', '#FFFFFF')
+                document.documentElement.style.setProperty('--tableItemHover', '#FFFFFFBF')
+                document.documentElement.style.setProperty('--menuBackground', '#DAE2E3')
+                document.documentElement.style.setProperty('--popupBackground', '#FFFFFF')
+                document.documentElement.style.setProperty('--popupRowBackground', '#0000001A')
+                document.documentElement.style.setProperty('--popupBorder', '#00000033')
+                document.documentElement.style.setProperty('--text1', '#000000')
+                document.documentElement.style.setProperty('--text1-50', '#0000007F')
+                document.documentElement.style.setProperty('--text2', '#FFFFFF')
+                document.documentElement.style.setProperty('--text3', '#FFFFFF')
+                document.documentElement.style.setProperty('--placeholderText', '#FFFFFFBF')
+            } else if (theme == 'GREY') {
+                document.documentElement.style.setProperty('--background1', '#737373')
 
-        //     } else if (theme == 'SEPIA') {
-        //         document.documentElement.style.setProperty('--background1', '#DBCBB7')
+            } else if (theme == 'SEPIA') {
+                document.documentElement.style.setProperty('--background1', '#DBCBB7')
+            }
+        },
 
-        //     }
-        // },
+        // Changes visibility of table groups, updates session
+        toggleTableGroups: function() {
+            console.log(">> toggleTableGroups")
+            session.settings.group_tables = session.settings.group_tables == 0 ? 1 : 0
+            MenuMaker.setTableGroups()
+            // MenuMaker.sendPost()
+        },
 
-        // // Toggles menu split setting, updates session
-        // toggleMenuGroups: function() {
-        //     console.log(">> toggleMenuGroups")
-        //     let split = session.settings.split_menu == 0 ? 1 : 0
-        //     session.settings.split_menu = split
-        //     MenuMaker.setMenuSplit()
-        //     MenuMaker.sendPost()
-        // },
+        // Sets visibility of table groups based on session
+        setTableGroups: function() {
+            console.log(">> setTableGroups")
+            let tableGroups = document.querySelectorAll('.table-group')
+            if (session.settings.group_tables == 0) {
+                s.groupTablesSpan.innerText = 'OFF'
+                tableGroups.forEach(group => group.classList.add('hidden'))
+            } else {
+                s.groupTablesSpan.innerText = 'ON'
+                tableGroups.forEach(group => group.classList.remove('hidden'))
+            }
+        },
 
-        // // Sets visibility of menu groups based on session
-        // setMenuSplit: function() {
-        //     console.log(">> setMenuSplit")
-        //     let split = ['ON', 'OFF'][session.settings.split_menu]
-        //     s.groupMenuSpan.innerText = split
-        //     // if (split == 'ON') {
-        //     //     for (let x = 0; x < 5; x++) {
-        //     //         let dishCount = session.menu[x].length
-        //     //         if (dishCount == 0) { s.menuGroupNames[x].classList.add('hidden') }
-        //     //         else { s.menuGroupNames[x].classList.remove('hidden') }
-        //     //     }
-        //     // } else {
-        //     //     s.menuGroupNames.forEach(group => group.classList.add('hidden'))
-        //     // }
-        // },
+        // Changes visibility of menu groups, updates session
+        toggleMenuGroups: function() {
+            console.log(">> toggleMenuGroups")
+            session.settings.group_menu = session.settings.group_menu == 0 ? 1 : 0
+            MenuMaker.setMenuGroups()
+            // MenuMaker.sendPost()
+        },
+
+        // Sets visibility of menu groups based on session
+        setMenuGroups: function() {
+            console.log(">> setMenuGroups")
+            let menuGroups = document.querySelectorAll('.menu-group')
+            if (session.settings.group_menu == 0) {
+                s.groupMenuSpan.innerText = 'OFF'
+                menuGroups.forEach(group => group.classList.add('hidden'))
+            } else {
+                s.groupMenuSpan.innerText = 'ON'
+                menuGroups.forEach(group => group.classList.remove('hidden'))
+            }
+        },
 
         // // Export data, converts session into a base64 encoded string for user to copy
         // exportData: function() {

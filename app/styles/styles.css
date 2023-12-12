@@ -1,7 +1,7 @@
 
 :root {
     --background1: #303040;
-    --background2: #242430;
+    --background2: #00000033;
     --dishBuilderBackground: #00000080;
     --tableBackground: #000000;
     --tableItemBackground: #000000;
@@ -124,23 +124,33 @@ body {
 }
 
 .settings-menu {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
     position: absolute;
-    width: max-content;
+    height: 39rem;
+    width: 21rem;
     top: 3rem;
     right: 0;
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
     background-color: var(--popupBackground);
+    transition: 0.2s;
+    overflow: hidden;
     z-index: 5;
 }
 
 .settings-menu.hidden {
+    height: 0;
+}
+
+.settings-menu.hidden * {
     display: none;
 }
 
 .settings-item {
     height: 2.5rem;
-    line-height: 2.35rem;
-    margin: 0.5rem 0.5rem;
+    line-height: 2.5rem;
+    margin: 0.25rem 1rem;
     padding: 0 1rem;
     border: 0.15rem solid var(--popupBorder);
     border-radius: 0.5rem;
@@ -151,7 +161,7 @@ body {
 .settings-item span {
     float: right;
     padding-left: 1rem;
-    line-height: 2.35rem;
+    line-height: 2.5rem;
     color: #c1c1c1;
     font-weight: bold;
 }
@@ -166,10 +176,11 @@ body {
 }
 
 .settings-separator {
-    height: 0.1rem;
-    width: 100%;
-    margin: 1rem 0;
-    background-color: red;
+    height: 0.2rem;
+    width: 90%;
+    margin: 1rem auto;
+    border-radius: 1rem;
+    background-color: #be9164;
 }
 
 
@@ -385,7 +396,6 @@ body {
     display: flex;
     flex-flow: column nowrap;
     position: relative;
-    /* height: calc(100% - 3rem); */
     width: 100%;
     padding: 1.25rem;
     background-color: var(--tableBackground);
@@ -395,7 +405,7 @@ body {
 .table-input,
 .table-item {
     height: 2rem;
-    width: 19.5rem;
+    /* width: 19.5rem; */
     border-radius: 0.2rem;
 }
 
@@ -416,19 +426,28 @@ body {
     width: 100%;
 }
 
+.table-group.hidden .table-group-name {
+    display: none;
+}
+
+.table-group:not(.hidden) .table-item {
+    margin-left: 0.5rem;
+}
+
 .table-group-name {
+    height: 2rem;
+    width: 19.5rem;
     margin-top: 0.5rem;
-    width: 100%;
-    border: 0.0625rem solid red;
+    border-radius: 0.2rem;
+    border-bottom: 0.0625rem solid red;
+    line-height: 2rem;
+    font-size: 1.2rem;
+    color: var(--text1)
 }
 
 .table-group-name.hidden {
     display: none;
 }
-
-/* .table-group-name:not(.hidden) .table-item {
-    margin-left: 0.5rem;
-} */
 
 .table-item {
     margin-top: 0.5rem;
@@ -523,16 +542,16 @@ body {
     width: 100%;
 }
 
+.menu-group.hidden .menu-group-name {
+    display: none;
+}
+
 .menu-group-name {
     height: 3rem;
     line-height: 3rem;
     font-size: 1.5rem;
     font-weight: bold;
     margin-top: 2rem;
-}
-
-.menu-group-name.hidden {
-    display: none;
 }
 
 .menu-group-name::after {
