@@ -1,11 +1,12 @@
 
+import { DEFAULT_STORAGE, DEFAULT_STORAGE_TESTING } from "/app/scripts/default_storage.js"
+
+
+
 document.addEventListener('DOMContentLoaded', function() {
     var s,
     MenuMaker = {
         settings: {
-            // JS copy of session data, updated and POSTed to Flask
-            //'sessionData': session,
-            'sessionKeys': ['tables', 'menu', 'archive', 'settings'],
             // Header
             'editModeButton': document.querySelector('.edit-icon'),
             'editModeActive': false,
@@ -74,12 +75,28 @@ document.addEventListener('DOMContentLoaded', function() {
         init: function() {
             console.log('>> >> >> >> >> >>>>   init   <<<< << << << << <<')
             s = MenuMaker.settings
-            console.log(session)
-            MenuMaker.updateWithSessionData()
-            MenuMaker.bindStaticUIActions()
+            MenuMaker.setStorage()
+            //MenuMaker.updateWithSessionData()
+            //MenuMaker.bindStaticUIActions()
             // MenuMaker.bindDynamicUIActions()
             // MenuMaker.setColorTheme()
             // MenuMaker.setMenuSplit()
+        },
+
+        // Checks localStorage for site data, if not found sets default values
+        setStorage: function() {
+            console.log(">> setStorage")
+            let defaultKeys = Object.keys(DEFAULT_STORAGE).sort()
+            let storedKeys = Object.keys(localStorage).sort()
+            if (defaultKeys.join() !== storedKeys.join()) {
+                console.log("\n!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!!\n")
+                localStorage.clear()
+                defaultKeys.forEach(key => {
+                    let strValue = JSON.stringify(DEFAULT_STORAGE_TESTING[key])
+                    localStorage.setItem(key, strValue)
+                })
+            }
+            console.log(localStorage)
         },
 
         // Bind Static UI actions (called at init)
