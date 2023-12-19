@@ -33,10 +33,12 @@ const DEFAULT_STORAGE = {
             "groups": [{ "name": "ungrouped", "items": [] }]
         }
     ],
-    "menu": {
-        "ungrouped": [],
-        // "groupName": [{"id": "", "title": "", "items": ""}, {"id": "", "title": "", "items": ""}, ...],
-    },
+    "menu": [
+        {   "name": "ungrouped",
+            "dishes": []
+        }
+        // {"name": "", "dishes": [{"id": "", "title": "", "items": ""}]}
+    ],
     "archive": [
         // {"id": "", "title": "", "items": ""},
     ],
@@ -68,31 +70,37 @@ const DEFAULT_STORAGE_TESTING = {
             "groups": [ {"name": "ungrouped", "items": ["Veggie1", "Veggie2"]} ],
         },
         {   "name": "Table name",
-            "groups": [["ungrouped", []]]
+            "groups": [{ "name": "ungrouped", "items": [] }]
         },
         {   "name": "Table name",
-            "groups": [["ungrouped", []]]
+            "groups": [{ "name": "ungrouped", "items": [] }]
         },
         {   "name": "Table name",
-            "groups": [["ungrouped", []]]
+            "groups": [{ "name": "ungrouped", "items": [] }]
         },
         {   "name": "Table name",
-            "groups": [["ungrouped", []]]
+            "groups": [{ "name": "ungrouped", "items": [] }]
         },
         {   "name": "Table name",
-            "groups": [["ungrouped", []]]
+            "groups": [{ "name": "ungrouped", "items": [] }]
         },
         {   "name": "Table name",
-            "groups": [["ungrouped", []]]
+            "groups": [{ "name": "ungrouped", "items": [] }]
         },
         {   "name": "Table name",
-            "groups": [["ungrouped", []]]
+            "groups": [{ "name": "ungrouped", "items": [] }]
         }
     ],
     "menu": [
-        ["ungrouped", [{"id": "UG1", "title": "Other1", "items": "Item1, item2, item3"}]],
-        ["Starters", [{"id": "S1", "title": "Starter1", "items": "Item1, item2, item3"}, {"id": "S2", "title": "Starter2", "items": "Item1, item2, item3"}]],
-        ["Entrees", [{"id": "E1", "title": "Entree1", "items": "Item1, item2, item3"}, {"id": "E2", "title": "Entree2", "items": "Item1, item2, item3"}]]
+        {   "name": "ungrouped",
+            "dishes": [{"id": "UG1", "title": "Other1", "items": "Item1, item2, item3"}]
+        },
+        {   "name": "Starters",
+            "dishes": [{"id": "S1", "title": "Starter1", "items": "Item1, item2, item3"}, {"id": "S2", "title": "Starter2", "items": "Item1, item2, item3"}]
+        },
+        {   "name": "Entrees",
+            "dishes": [{"id": "E1", "title": "Entree1", "items": "Item1, item2, item3"}, {"id": "E2", "title": "Entree2", "items": "Item1, item2, item3"}]
+        }
     ],
     "archive": [
         {"id": "A1", "title": "Archive1", "items": "Item1, item2, item3"},

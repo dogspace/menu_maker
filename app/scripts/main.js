@@ -1,5 +1,6 @@
 
 import { DEFAULT_STORAGE, DEFAULT_STORAGE_TESTING } from "/app/scripts/default_storage.js"
+import * as createElement from '/app/scripts/create_element.js'
 
 
 
@@ -7,6 +8,10 @@ document.addEventListener('DOMContentLoaded', function() {
     var s,
     MenuMaker = {
         settings: {
+            // Session is a JSON parsed copy of localStorage
+            // Session is updated as changes are made, used to avoid constant localStorage string conversion
+            'session': {},
+            'defaultKeys': Object.keys(DEFAULT_STORAGE).sort(),
             // Header
             'editModeButton': document.querySelector('.edit-icon'),
             'editModeActive': false,
@@ -76,27 +81,12 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('>> >> >> >> >> >>>>   init   <<<< << << << << <<')
             s = MenuMaker.settings
             MenuMaker.setStorage()
-            //MenuMaker.updateWithSessionData()
+            MenuMaker.setSession()
+            MenuMaker.updateWithSessionData()
             //MenuMaker.bindStaticUIActions()
             // MenuMaker.bindDynamicUIActions()
             // MenuMaker.setColorTheme()
             // MenuMaker.setMenuSplit()
-        },
-
-        // Checks localStorage for site data, if not found sets default values
-        setStorage: function() {
-            console.log(">> setStorage")
-            let defaultKeys = Object.keys(DEFAULT_STORAGE).sort()
-            let storedKeys = Object.keys(localStorage).sort()
-            if (defaultKeys.join() !== storedKeys.join()) {
-                console.log("\n!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!!\n")
-                localStorage.clear()
-                defaultKeys.forEach(key => {
-                    let strValue = JSON.stringify(DEFAULT_STORAGE_TESTING[key])
-                    localStorage.setItem(key, strValue)
-                })
-            }
-            console.log(localStorage)
         },
 
         // Bind Static UI actions (called at init)
@@ -137,54 +127,75 @@ document.addEventListener('DOMContentLoaded', function() {
             //dishDeleteButtons.forEach(button => { button.addEventListener('click', MenuMaker.moveDishToArchive) })
         },
 
-        // Updates site with session data
+        // Checks localStorage for site data, if not found sets default values
+        setStorage: function() {
+            console.log(">> setStorage")
+            let storedKeys = Object.keys(localStorage).sort()
+            let forceNew = true // TEMPORARY TEMPORARY TEMPORARY
+            if (s.defaultKeys.join() !== storedKeys.join() || forceNew) {
+                console.log("\n!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!!\n")
+                localStorage.clear()
+                s.defaultKeys.forEach(key => {
+                    let strValue = JSON.stringify(DEFAULT_STORAGE_TESTING[key])
+                    localStorage.setItem(key, strValue)
+                })
+            }
+        },
+
+        // Convert localStorage strings into objects ands save to session variable
+        setSession: function() {
+            console.log(">> setSession")
+            s.defaultKeys.forEach(key => { s.session[key] = JSON.parse(localStorage[key]) })
+        },
+
+        // Updates site with stored data
         updateWithSessionData: function() {
             console.log(">> updateWithSessionData")
             // Update tables
             for (let x = 0; x < 10; x++) {
                 // Update table name
-                s.tables[x].querySelector('.table-title').innerText = session.tables[x].name
+                s.tables[x].querySelector('.table-title').innerText = s.session.tables[x].name
                 // Create new groups (if not ungrouped) and fill with items
                 let tableItems = s.tables[x].querySelector('.table-items')
-                let tableGroups = session.tables[x].groups
+                let tableGroups = s.session.tables[x].groups
                 for (let y = 0; y < tableGroups.length; y++) {
-                    let groupName = tableGroups[y][0]
-                    let groupItems = tableGroups[y][1]
-                    let thisGroup = tableItems
+                    let groupName = tableGroups[y].name
+                    let groupItems = tableGroups[y].items
+                    let itemBox = tableItems
                     if (groupName != 'ungrouped') {
-                        let newGroup = MenuMaker.createTableGroupHTML(groupName)
+                        let newGroup = createElement.tableGroupHTML(groupName)
                         tableItems.innerHTML += newGroup
-                        thisGroup = tableItems.querySelector('.table-group.' + groupName)
+                        itemBox = tableItems.querySelector('.table-group.' + groupName)
                     }
-                    if (thisGroup) {
+                    if (itemBox) {
                         for (let z = 0; z < groupItems.length; z++) {
-                            let newItem = MenuMaker.createTableItemHTML(groupItems[z])
-                            thisGroup.innerHTML += newItem
+                            let newItem = createElement.tableItemHTML(groupItems[z])
+                            itemBox.innerHTML += newItem
                         }
                     } else {
-                        console.warn("ERROR: " + groupName + " TABLE GROUP NOT FOUND")
+                        console.error("ERROR: " + groupName + " TABLE GROUP NOT FOUND")
                         return
                     }
                 }
             }
             // Update menu
-            for (let x = 0; x < session.menu.length; x++) {
-                let groupName = session.menu[x][0]
-                let groupDishes = session.menu[x][1]
-                let thisGroup = s.menuBody
+            for (let x = 0; x < s.session.menu.length; x++) {
+                let groupName = s.session.menu[x].name
+                let groupDishes = s.session.menu[x].dishes
+                let dishBox = s.menuBody
                 if (groupName != 'ungrouped') {
-                    let newGroup = MenuMaker.createMenuGroupHTML(groupName)
+                    let newGroup = createElement.menuGroupHTML(groupName)
                     s.menuBody.innerHTML += newGroup
-                    thisGroup = s.menuBody.querySelector('.menu-group.' + groupName)
+                    dishBox = s.menuBody.querySelector('.menu-group.' + groupName)
                 }
-                if (thisGroup) {
+                if (dishBox) {
                     for (let y = 0; y < groupDishes.length; y++) {
                         let dish = groupDishes[y]
-                        let newItem = MenuMaker.createMenuDishHTML(dish.id, dish.title, dish.items)
-                        thisGroup.innerHTML += newItem
+                        let newItem = createElement.menuDishHTML(dish.id, dish.title, dish.items)
+                        dishBox.innerHTML += newItem
                     }
                 } else {
-                    console.warn("ERROR: " + groupName + " MENU GROUP NOT FOUND")
+                    console.error("ERROR: " + groupName + " MENU GROUP NOT FOUND")
                     return
                 }
             }
@@ -195,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> createNewTableItem")
             let text = target.value
             if (text.trim() == '') { return }
-            let newItem = MenuMaker.createTableItemHTML(text)
+            let newItem = createElement.tableItemHTML(text)
             let tableItems = target.parentElement.querySelector('.table-items')
             tableItems.innerHTML += newItem
             target.value = ''
@@ -207,25 +218,8 @@ document.addEventListener('DOMContentLoaded', function() {
             let table = tableItems.parentElement.parentElement
             let indexClass = table.classList[1]
             let tableIndex = s.tableOrder.indexOf(indexClass)
-            session.tables[s.groupIndex][tableIndex].push(text)
+            s.session.tables[tableIndex].groups[0].push(text)
             MenuMaker.sendPost()
-        },
-
-        //
-        createTableGroupHTML: function(groupName) {
-            return `
-                <div class="table-group hidden ` + groupName + `">
-                    <div class="table-group-name">` + groupName + `</div>
-                </div>`
-        },
-
-        //
-        createTableItemHTML: function(itemText) {
-            return `
-                <div class="table-item">
-                    <div class="item-checkbox"><span class="circle"></span></div>
-                    <div class="item-content">` + itemText + `</div>
-                </div>`
         },
 
         // // Adds dish to menu, updates session
@@ -236,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
         //     let ingredients = s.buildItems.innerText
         //     // Ingredients and description are required, id is optional
         //     if (title.trim() != '' && ingredients.trim() != '') {
-        //         let newDish = MenuMaker.createMenuDishHTML(id, title, ingredients)
+        //         let newDish = createElement.menuDishHTML(id, title, ingredients)
         //         let group = s.menuGroups[s.groupIndex]
         //         let groupDishes = group.querySelector('.menu-group-dishes')
         //         groupDishes.innerHTML += newDish
@@ -256,32 +250,6 @@ document.addEventListener('DOMContentLoaded', function() {
         //         setTimeout(() => { s.menuButton.style.backgroundColor = '#ff6262' }, 400)
         //     }
         // },
-
-        //
-        createMenuGroupHTML: function(groupName) {
-            return `
-                <div class="menu-group hidden ` + groupName + `">
-                    <div class="menu-group-name">` + groupName + `</div>
-                </div>`
-        },
-
-        //
-        createMenuDishHTML: function(id, title, items) {
-            return `
-                <div class="menu-dish">
-                    <div class="dish-info">
-                        <div class="dish-id">` + id + `</div>
-                        <div class="dish-title">` + title + `</div>
-                    </div>
-                    <div class="dish-items">` + items + `</div>
-                    <div class="dish-delete inactive">
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
-                            <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 
-                            56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/>
-                        </svg>
-                    </div>
-                </div>`
-        },
 
         // Toggle settings menu open/closed
         toggleSettingsMenu: function() {
