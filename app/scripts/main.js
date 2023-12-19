@@ -1,5 +1,5 @@
 
-import { DEFAULT_STORAGE, DEFAULT_STORAGE_TESTING } from "/app/scripts/default_storage.js"
+import { DEFAULT_SESSION, DEFAULT_SESSION_TESTING } from "/app/scripts/default_session.js"
 import * as createElement from '/app/scripts/create_element.js'
 
 
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Session is a JSON parsed copy of localStorage
             // Session is updated as changes are made, used to avoid constant localStorage string conversion
             'session': {},
-            'defaultKeys': Object.keys(DEFAULT_STORAGE).sort(),
+            'sessionKeys': Object.keys(DEFAULT_SESSION).sort(),
             // Header
             'editModeButton': document.querySelector('.edit-icon'),
             'editModeActive': false,
@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
             'numberMenuSpan': document.querySelector('.number-menu span'),
             'dishSpawnLocButton': document.querySelector('.dish-spawn-loc'),
             'dishSpawnLocSpan': document.querySelector('.dish-spawn-loc span'),
-
             'importDataButton': document.querySelector('.import-data'),
             'exportDataButton': document.querySelector('.export-data'),
             'deleteTablesButton': document.querySelector('.delete-tables'),
@@ -55,8 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Menu
             'menu': document.querySelector('.menu'),
             'menuBody': document.querySelector('.menu-body'),
-            'menuGroups': document.querySelectorAll('.menu-group'),
-            'menuGroupNames': document.querySelectorAll('.menu-group-name'),
+            //'menuGroups': document.querySelectorAll('.menu-group'),
+            //'menuGroupNames': document.querySelectorAll('.menu-group-name'),
             'menuButton': document.querySelector('.menu-button'),
             //
             'popupContainer': document.querySelector('.popup-container'),
@@ -82,61 +81,61 @@ document.addEventListener('DOMContentLoaded', function() {
             s = MenuMaker.settings
             MenuMaker.setStorage()
             MenuMaker.setSession()
+            console.log(s.session)
             MenuMaker.updateWithSessionData()
-            //MenuMaker.bindStaticUIActions()
-            // MenuMaker.bindDynamicUIActions()
-            // MenuMaker.setColorTheme()
-            // MenuMaker.setMenuSplit()
+            MenuMaker.bindStaticUIActions()
+            MenuMaker.bindDynamicUIActions()
+            MenuMaker.setColorTheme()
+            MenuMaker.setTableGroups()
+            MenuMaker.setMenuGroups()
         },
 
         // Bind Static UI actions (called at init)
         bindStaticUIActions: function() {
             console.log(">> bindStaticUIActions <<")
+            s.menuButton.addEventListener('click', MenuMaker.openMenu)
             s.editModeButton.addEventListener('click', MenuMaker.toggleEditMode)
             s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
             s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
             s.groupTablesButton.addEventListener('click', MenuMaker.toggleTableGroups)
             s.groupMenuButton.addEventListener('click', MenuMaker.toggleMenuGroups)
+            s.importDataButton.addEventListener('click', MenuMaker.importData)
+            s.exportDataButton.addEventListener('click', MenuMaker.exportData)
+
             // s.numberMenuButton.addEventListener('click', MenuMaker.toggleMenuNumbers)
             // s.dishSpawnLocButton.addEventListener('click', MenuMaker.setDishSpawn)
-            // s.importDataButton.addEventListener('click', MenuMaker.importData)
-            // s.exportDataButton.addEventListener('click', MenuMaker.exportData)
             // s.deleteTablesButton.addEventListener('click', MenuMaker.deleteAllTables)
             // s.deleteMenuButton.addEventListener('click', MenuMaker.deleteMenu)
             // s.deleteArchiveButton.addEventListener('click', MenuMaker.deleteArchive)
             // s.deleteAllButton.addEventListener('click', MenuMaker.deleteEverything)
 
-            s.menuButton.addEventListener('click', MenuMaker.openMenu)
-            // s.buildID.addEventListener('keydown', MenuMaker.checkKeypress, true)
-            // s.buildTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
-            // s.buildAdd.addEventListener('click', MenuMaker.createNewMenuDish)
-            // s.buildDeselect.addEventListener('click', MenuMaker.deselectAllItems)
-
-            // s.tableControlButtons.forEach(button => { button.addEventListener('click', MenuMaker.toggleTableControlMenu) })
-            // s.tableDeleteButtons.forEach(button => { button.addEventListener('click', MenuMaker.deleteTableItems )})
-            // s.tableInputs.forEach(input => { input.addEventListener('keydown', MenuMaker.checkKeypress, true) })
+            s.buildID.addEventListener('keydown', MenuMaker.checkKeypress, true)
+            s.buildTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
+            s.buildAdd.addEventListener('click', MenuMaker.createNewMenuDish)
+            s.buildDeselect.addEventListener('click', MenuMaker.deselectAllItems)
+            s.tableInputs.forEach(input => { input.addEventListener('keydown', MenuMaker.checkKeypress, true) })
         },
 
         // Bind dynamic UI actions (called at init and after creating a new table/menu item)
         bindDynamicUIActions: function() {
             console.log(">> bindDynamicUIActions <<")
-            // let tableItems = document.querySelectorAll('.table-item')
-            // tableItems.forEach(item => { item.addEventListener('mousedown', MenuMaker.clickElement) })
+            let tableItems = document.querySelectorAll('.table-item')
+            tableItems.forEach(item => { item.addEventListener('mousedown', MenuMaker.clickElement) })
 
-            //let dishDeleteButtons = s.menu.querySelectorAll('.dish-delete')
-            //dishDeleteButtons.forEach(button => { button.addEventListener('click', MenuMaker.moveDishToArchive) })
+            let dishDeleteButtons = s.menu.querySelectorAll('.dish-delete')
+            dishDeleteButtons.forEach(button => { button.addEventListener('click', MenuMaker.moveDishToArchive) })
         },
 
         // Checks localStorage for site data, if not found sets default values
         setStorage: function() {
             console.log(">> setStorage")
-            let storedKeys = Object.keys(localStorage).sort()
-            let forceNew = true // TEMPORARY TEMPORARY TEMPORARY
-            if (s.defaultKeys.join() !== storedKeys.join() || forceNew) {
+            let isValid = s.sessionKeys.every(key => localStorage.hasOwnProperty(key))
+            let forceNew = false // TEMPORARY TEMPORARY TEMPORARY
+            if (!isValid || forceNew) {
                 console.log("\n!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!! NEW SESSION !!!!!!!!!!!!!\n")
                 localStorage.clear()
-                s.defaultKeys.forEach(key => {
-                    let strValue = JSON.stringify(DEFAULT_STORAGE_TESTING[key])
+                s.sessionKeys.forEach(key => {
+                    let strValue = JSON.stringify(DEFAULT_SESSION_TESTING[key])
                     localStorage.setItem(key, strValue)
                 })
             }
@@ -145,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Convert localStorage strings into objects ands save to session variable
         setSession: function() {
             console.log(">> setSession")
-            s.defaultKeys.forEach(key => { s.session[key] = JSON.parse(localStorage[key]) })
+            s.sessionKeys.forEach(key => { s.session[key] = JSON.parse(localStorage[key]) })
         },
 
         // Updates site with stored data
@@ -219,37 +218,32 @@ document.addEventListener('DOMContentLoaded', function() {
             let indexClass = table.classList[1]
             let tableIndex = s.tableOrder.indexOf(indexClass)
             s.session.tables[tableIndex].groups[0].push(text)
-            MenuMaker.sendPost()
+            MenuMaker.updateLocalStorage()
         },
 
-        // // Adds dish to menu, updates session
-        // createNewMenuDish: function() {
-        //     console.log(">> createNewMenuDish")
-        //     let id = s.buildID.value
-        //     let title = s.buildTitle.value
-        //     let ingredients = s.buildItems.innerText
-        //     // Ingredients and description are required, id is optional
-        //     if (title.trim() != '' && ingredients.trim() != '') {
-        //         let newDish = createElement.menuDishHTML(id, title, ingredients)
-        //         let group = s.menuGroups[s.groupIndex]
-        //         let groupDishes = group.querySelector('.menu-group-dishes')
-        //         groupDishes.innerHTML += newDish
-        //         group.querySelector('.menu-group-name').classList.remove('hidden')
-        //         MenuMaker.deselectAllItems()
-        //         MenuMaker.cacheMenu()
-        //         MenuMaker.sendPost()
-        //         // If dish was created with edit mode active, set edit mode styles/actions
-        //         if (s.editModeActive) {
-        //             MenuMaker.toggleMenuEditMode()
-        //             MenuMaker.toggleButtonsEditMode()
-        //         }
-        //         // Rebind UI actions for all items in this table
-        //         MenuMaker.bindDynamicUIActions()
-        //         // Flash menu button color to indicate the dish was added
-        //         s.menuButton.style.backgroundColor = 'white'
-        //         setTimeout(() => { s.menuButton.style.backgroundColor = '#ff6262' }, 400)
-        //     }
-        // },
+        // Adds dish to menu, updates session
+        createNewMenuDish: function() {
+            console.log(">> createNewMenuDish")
+            let id = s.buildID.value
+            let title = s.buildTitle.value
+            let ingredients = s.buildItems.innerText
+            // Ingredients and description are required, id is optional
+            if (title.trim() != '' && ingredients.trim() != '') {
+                s.menuBody.innerHTML += createElement.menuDishHTML(id, title, ingredients)
+                MenuMaker.deselectAllItems()
+                MenuMaker.cacheMenu()
+                MenuMaker.updateLocalStorage()
+                // Update UI actions and buttons for new dish
+                if (s.editModeActive) {
+                    MenuMaker.toggleMenuEditMode()
+                    MenuMaker.toggleButtonsEditMode()
+                }
+                MenuMaker.bindDynamicUIActions()
+                // Flash menu button color to indicate the dish was added
+                s.menuButton.style.backgroundColor = 'white'
+                setTimeout(() => { s.menuButton.style.backgroundColor = '#ff6262' }, 400)
+            }
+        },
 
         // Toggle settings menu open/closed
         toggleSettingsMenu: function() {
@@ -279,51 +273,55 @@ document.addEventListener('DOMContentLoaded', function() {
         //     tableItems.innerHTML = ''
         // },
 
-        // //
-        // selectTableItem: function(event) {
-        //     console.log(">> selectTableItem")
-        //     let tableItem = event.target
-        //     if (tableItem.classList[0] != 'table-item') {
-        //         tableItem = tableItem.closest('.table-item')
-        //     }
-        //     let textBox = tableItem.querySelector('.item-content')
-        //     if (textBox.contains(event.target) && s.editModeActive) { return }
-        //     // Only allow one selection per table
-        //     let oldItem = tableItem.parentElement.querySelector('.table-item.selected')
-        //     if (oldItem) {
-        //         if (oldItem != tableItem) { oldItem.classList.toggle('selected') }
-        //     }
-        //     tableItem.classList.toggle('selected')
-        //     MenuMaker.updateBuildBox()
-        //     // Set visibility of dish id/title fields
-        //     let itemSelected = document.querySelector('.table-item.selected')
-        //     if ((itemSelected && s.buildInfo.classList.contains('hidden')) ||
-        //         (!itemSelected && !s.buildInfo.classList.contains('hidden'))) {
-        //             s.buildInfo.classList.toggle('hidden')
-        //     }
-        // },
+        //
+        selectTableItem: function(event) {
+            console.log(">> selectTableItem")
+            console.log(event.target)
+            let tableItem = event.target
+            if (tableItem.classList[0] != 'table-item') {
+                tableItem = tableItem.closest('.table-item')
+                if (!tableItem) {
+                    console.warn("selectTableItem RETURNING (TEMP)")
+                    return // temp temp temp temp temp
+                }
+            }
+            let textBox = tableItem.querySelector('.item-content')
+            if (textBox.contains(event.target) && s.editModeActive) { return }
+            // Only allow one selection per table
+            let oldItem = tableItem.parentElement.querySelector('.table-item.selected')
+            if (oldItem) {
+                if (oldItem != tableItem) { oldItem.classList.toggle('selected') }
+            }
+            tableItem.classList.toggle('selected')
+            MenuMaker.updateBuildBox()
+            // Set visibility of dish id/title fields
+            let itemSelected = document.querySelector('.table-item.selected')
+            if ((itemSelected && s.buildInfo.classList.contains('hidden')) ||
+                (!itemSelected && !s.buildInfo.classList.contains('hidden'))) {
+                s.buildInfo.classList.toggle('hidden')
+            }
+        },
 
-        // // Dish builder deselect button, clear table selecitons and dish builder fields
-        // deselectAllItems: function() {
-        //     console.log(">> deselectAllItems")
-        //     s.buildInfo.classList.add('hidden')
-        //     let activeItems = document.querySelectorAll('.table-item.selected')
-        //     activeItems.forEach(item => item.classList.toggle('selected'))
-        //     s.buildID.value = ''
-        //     s.buildTitle.value = ''
-        //     s.buildItems.innerText = ''
-        // },
+        // Dish builder deselect button, clear table selecitons and dish builder fields
+        deselectAllItems: function() {
+            console.log(">> deselectAllItems")
+            s.buildInfo.classList.add('hidden')
+            let activeItems = document.querySelectorAll('.table-item.selected')
+            activeItems.forEach(item => item.classList.toggle('selected'))
+            s.buildID.value = ''
+            s.buildTitle.value = ''
+            s.buildItems.innerText = ''
+        },
 
-        // //
-        // updateBuildBox: function() {
-        //     console.log(">> updateBuildBox")
-        //     let itemList = []
-        //     let selectedItems = document.querySelectorAll('.table-item.selected:not(.drag-clone)')
-        //     console.log(selectedItems)
-        //     selectedItems.forEach(item => { itemList.push(item.querySelector('.item-content').innerText) })
-        //     let itemString = itemList.join(', ')
-        //     s.buildItems.innerText = itemString
-        // },
+        //
+        updateBuildBox: function() {
+            console.log(">> updateBuildBox")
+            let itemList = []
+            let selectedItems = document.querySelectorAll('.table-item.selected:not(.drag-clone)')
+            selectedItems.forEach(item => { itemList.push(item.querySelector('.item-content').innerText) })
+            let itemString = itemList.join(', ')
+            s.buildItems.innerText = itemString
+        },
 
         //
         toggleEditMode: function() {
@@ -331,10 +329,10 @@ document.addEventListener('DOMContentLoaded', function() {
             s.editModeButton.classList.toggle('active')
             s.editModeActive = s.editModeButton.classList.contains('active')
             // If edit mode was turned off, update session
-            // if (!s.editModeActive) {
-            //     MenuMaker.cacheActiveTables()
-            //     MenuMaker.sendPost()
-            // }
+            if (!s.editModeActive) {
+                MenuMaker.cacheActiveTables()
+                MenuMaker.updateLocalStorage()
+            }
             // Call functions to toggle contentEditable for divs
             MenuMaker.toggleTableEditMode()
             MenuMaker.toggleMenuEditMode()
@@ -411,38 +409,38 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
-        // // Check keypresses while in edit mode
-        // checkKeypress: function(event) {
-        //     console.log("checkKeypress")
-        //     if (event.key === 'Escape' || event.keyCode === 27) {
-        //         document.removeEventListener('keypress', MenuMaker.checkKeypress, true)
-        //         if (s.editModeActive) { MenuMaker.toggleEditMode() }
-        //     } else if (event.key === 'Enter' || event.keyCode == 13) {
-        //         if (event.target.className == 'table-input') {
-        //             MenuMaker.createNewTableItem(event.target)
-        //         } else {
-        //             event.target.blur()
-        //         }
-        //     } else if (event.key === 'Tab' || event.KeyCode == 9) {
-        //         event.preventDefault()
-        //     } else if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g)) {
-        //         let charCount, elementClass
-        //         if (event.target.tagName == 'DIV') {
-        //             charCount = event.target.innerText.length
-        //             elementClass = event.target.classList[0]
-        //         } else if (event.target.tagName == 'INPUT') {
-        //             charCount = event.target.value.length
-        //             elementClass = event.target.className
-        //         }
-        //         if ((charCount >= 250) ||
-        //             ((charCount >= 60) && (elementClass == 'dish-title' || elementClass == 'build-title')) ||
-        //             ((charCount >= 40) && (elementClass == 'item-content' || elementClass == 'table-input' || elementClass == 'group-name')) ||
-        //             ((charCount >= 25) && (elementClass == 'table-title')) ||
-        //             ((charCount >= 4) && (elementClass == 'dish-id' || elementClass == 'build-id'))) {
-        //             event.preventDefault()
-        //         }
-        //     }
-        // },
+        // Check keypresses while in edit mode
+        checkKeypress: function(event) {
+            console.log("checkKeypress")
+            if (event.key === 'Escape' || event.keyCode === 27) {
+                document.removeEventListener('keypress', MenuMaker.checkKeypress, true)
+                if (s.editModeActive) { MenuMaker.toggleEditMode() }
+            } else if (event.key === 'Enter' || event.keyCode == 13) {
+                if (event.target.className == 'table-input') {
+                    MenuMaker.createNewTableItem(event.target)
+                } else {
+                    event.target.blur()
+                }
+            } else if (event.key === 'Tab' || event.KeyCode == 9) {
+                event.preventDefault()
+            } else if (String.fromCharCode(event.keyCode).match(/(\w|\s)/g)) {
+                let charCount, elementClass
+                if (event.target.tagName == 'DIV') {
+                    charCount = event.target.innerText.length
+                    elementClass = event.target.classList[0]
+                } else if (event.target.tagName == 'INPUT') {
+                    charCount = event.target.value.length
+                    elementClass = event.target.className
+                }
+                if ((charCount >= 250) ||
+                    ((charCount >= 60) && (elementClass == 'dish-title' || elementClass == 'build-title')) ||
+                    ((charCount >= 40) && (elementClass == 'item-content' || elementClass == 'table-input' || elementClass == 'group-name')) ||
+                    ((charCount >= 25) && (elementClass == 'table-title')) ||
+                    ((charCount >= 4) && (elementClass == 'dish-id' || elementClass == 'build-id'))) {
+                    event.preventDefault()
+                }
+            }
+        },
 
         // Toggle menu visibility
         openMenu: function() {
@@ -454,15 +452,15 @@ document.addEventListener('DOMContentLoaded', function() {
         changeColorTheme: function() {
             console.log(">> changeColorTheme")
             let theme = (session.settings.color_theme + 1) % 4
-            session.settings.color_theme = theme
+            s.session.settings.color_theme = theme
             MenuMaker.setColorTheme()
-            //MenuMaker.sendPost()
+            MenuMaker.updateLocalStorage()
         },
 
         // Sets site colors based on session
         setColorTheme: function() {
             console.log(">> setColorTheme")
-            let theme = ['DARK', 'LIGHT', 'GREY', 'SEPIA'][session.settings.color_theme]
+            let theme = ['DARK', 'LIGHT', 'GREY', 'SEPIA'][s.session.settings.color_theme]
             s.colorThemeSpan.innerText = theme
             // UNFINISHED UNFINISHED UNFINISHED
             if (theme == 'DARK') {
@@ -508,16 +506,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Changes visibility of table groups, updates session
         toggleTableGroups: function() {
             console.log(">> toggleTableGroups")
-            session.settings.group_tables = session.settings.group_tables == 0 ? 1 : 0
+            s.session.settings.group_tables = s.session.settings.group_tables == 0 ? 1 : 0
             MenuMaker.setTableGroups()
-            // MenuMaker.sendPost()
+            MenuMaker.updateLocalStorage()
         },
 
         // Sets visibility of table groups based on session
         setTableGroups: function() {
             console.log(">> setTableGroups")
             let tableGroups = document.querySelectorAll('.table-group')
-            if (session.settings.group_tables == 0) {
+            if (s.session.settings.group_tables == 0) {
                 s.groupTablesSpan.innerText = 'OFF'
                 tableGroups.forEach(group => group.classList.add('hidden'))
             } else {
@@ -529,16 +527,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Changes visibility of menu groups, updates session
         toggleMenuGroups: function() {
             console.log(">> toggleMenuGroups")
-            session.settings.group_menu = session.settings.group_menu == 0 ? 1 : 0
+            s.session.settings.group_menu = s.session.settings.group_menu == 0 ? 1 : 0
             MenuMaker.setMenuGroups()
-            // MenuMaker.sendPost()
+            MenuMaker.updateLocalStorage()
         },
 
         // Sets visibility of menu groups based on session
         setMenuGroups: function() {
             console.log(">> setMenuGroups")
             let menuGroups = document.querySelectorAll('.menu-group')
-            if (session.settings.group_menu == 0) {
+            if (s.session.settings.group_menu == 0) {
                 s.groupMenuSpan.innerText = 'OFF'
                 menuGroups.forEach(group => group.classList.add('hidden'))
             } else {
@@ -547,159 +545,180 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
-        // // Export data, converts session into a base64 encoded string for user to copy
-        // exportData: function() {
-        //     s.popupWarning.classList.add('hidden')
-        //     s.popupHeader.innerText = 'Click to copy:'
-        //     let base64 = btoa(JSON.stringify(session))
-        //     s.popupBody.innerText = MenuMaker.reverseString(base64)
-        //     s.popupBody.contentEditable = false
-        //     s.popupBody.style.cursor = 'pointer'
-        //     MenuMaker.togglePopupBox(false)
-        // },
+        // Export data, converts session into a base64 encoded string for user to copy
+        exportData: function() {
+            s.popupWarning.classList.add('hidden')
+            s.popupHeader.innerText = 'Click to copy:'
+            let base64 = btoa(JSON.stringify(s.session))
+            s.popupBody.innerText = MenuMaker.reverseString(base64)
+            s.popupBody.contentEditable = false
+            s.popupBody.style.cursor = 'pointer'
+            MenuMaker.togglePopupBox(false)
+        },
 
-        // //
-        // importData: function() {
-        //     s.popupWarning.innerText = 'WARNING: Your current data will be replaced'
-        //     s.popupWarning.classList.remove('hidden')
-        //     s.popupHeader.innerText = 'Paste exported data below:'
-        //     s.popupBody.innerText = ''
-        //     s.popupBody.contentEditable = true
-        //     s.popupBody.style.cursor = 'text'
-        //     MenuMaker.togglePopupBox(true)
-        // },
+        //
+        importData: function() {
+            s.popupWarning.innerText = 'WARNING: Your current data will be replaced'
+            s.popupWarning.classList.remove('hidden')
+            s.popupHeader.innerText = 'Paste exported data below:'
+            s.popupBody.innerText = ''
+            s.popupBody.contentEditable = true
+            s.popupBody.style.cursor = 'text'
+            MenuMaker.togglePopupBox(true)
+            //unfinished
+        },
 
-        // //
-        // togglePopupBox: function(isImport) {
-        //     console.log(">> togglePopupBox")
-        //     s.popupContainer.classList.toggle('hidden')
-        //     if (s.popupContainer.classList.contains('hidden')) {
-        //         if (isImport) {
-        //             document.removeEventListener('click', MenuMaker.checkPopupClickImport, true)
-        //             document.removeEventListener('input', MenuMaker.checkPopupKeypress, true)
-        //         } else {
-        //             document.removeEventListener('click', MenuMaker.checkPopupClickExport, true)
-        //         }
-        //     } else {
-        //         if (isImport) {
-        //             document.addEventListener('click', MenuMaker.checkPopupClickImport, true)
-        //             document.addEventListener('input', MenuMaker.checkPopupKeypress, true)
-        //         } else {
-        //             document.addEventListener('click', MenuMaker.checkPopupClickExport, true)
-        //         }
-        //     }
-        // },
+        //
+        togglePopupBox: function(isImport) {
+            console.log(">> togglePopupBox")
+            s.popupContainer.classList.toggle('hidden')
+            if (s.popupContainer.classList.contains('hidden')) {
+                if (isImport) {
+                    document.removeEventListener('click', MenuMaker.checkPopupClickImport, true)
+                    document.removeEventListener('input', MenuMaker.checkPopupKeypress, true)
+                } else {
+                    document.removeEventListener('click', MenuMaker.checkPopupClickExport, true)
+                }
+            } else {
+                if (isImport) {
+                    document.addEventListener('click', MenuMaker.checkPopupClickImport, true)
+                    document.addEventListener('input', MenuMaker.checkPopupKeypress, true)
+                } else {
+                    document.addEventListener('click', MenuMaker.checkPopupClickExport, true)
+                }
+            }
+        },
 
-        // // Checks clicks while popup is open, ends when user clicks outside of popup
-        // checkPopupClickImport: function(event) {
-        //     console.log(">> checkPopupClick")
-        //     let target = event.target
-        //     if (!s.popupBox.contains(target)) {
-        //         document.removeEventListener('click', MenuMaker.checkPopupClickImport, true)
-        //         MenuMaker.togglePopupBox()
-        //     }
-        // },
+        // Checks clicks while popup is open, ends when user clicks outside of popup
+        checkPopupClickImport: function(event) {
+            console.log(">> checkPopupClick")
+            let target = event.target
+            if (!s.popupBox.contains(target)) {
+                document.removeEventListener('click', MenuMaker.checkPopupClickImport, true)
+                MenuMaker.togglePopupBox()
+            }
+        },
 
-        // // Checks if user input is a valid base64 encoded session object, updates session
-        // checkPopupKeypress: function(event) {
-        //     console.log(">> checkPopupKeypress")
-        //     let newSession
-        //     let isValid = false
-        //     let input = MenuMaker.reverseString(s.popupBody.innerText)
-        //     let base64Regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/
-        //     let dictRegex = /\{(.)+\}/g
+        // Checks if user input is a valid base64 encoded session object, updates session
+        checkPopupKeypress: function(event) {
+            console.log(">> checkPopupKeypress")
+            let newSession
+            let isValid = false
+            let input = MenuMaker.reverseString(s.popupBody.innerText)
+            let base64Regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/
+            let dictRegex = /\{(.)+\}/g
             
-        //     if (base64Regex.test(input)) {
-        //         input = atob(input)
-        //         if (dictRegex.test(input)) {
-        //             try {
-        //                 newSession = JSON.parse(input)
-        //                 if (s.sessionKeys.every(key => newSession.hasOwnProperty(key))) { isValid = true }
-        //             } catch { console.log("MISSING KEYS or INVALID OBJECT") }
-        //         }
-        //     }
+            if (base64Regex.test(input)) {
+                input = atob(input)
+                if (dictRegex.test(input)) {
+                    try {
+                        newSession = JSON.parse(input)
+                        isValid = s.sessionKeys.every(key => newSession.hasOwnProperty(key))
+                    } catch { console.warn("INPUT MISSING KEYS or INVALID OBJECT") }
+                }
+            }
             
-        //     if (!isValid) {
-        //         s.popupWarning.innerText = 'INVALID INPUT'
-        //     } else {
-        //         s.popupWarning.innerText = 'VALID INPUT - UPADING SITE'
-        //         session = newSession
-        //         MenuMaker.wipeTablesAndMenus()
-        //         MenuMaker.init()
-        //         MenuMaker.sendPost()
-        //         setTimeout(function() { s.popupOverlay.click() }, 2000)
-        //     }
-        // },
+            if (!isValid) {
+                s.popupWarning.innerText = 'INVALID INPUT'
+            } else {
+                s.popupWarning.innerText = 'VALID INPUT - UPADING SITE'
+                s.session = newSession
+                MenuMaker.wipeTablesAndMenus()
+                MenuMaker.init()
+                MenuMaker.updateLocalStorage()
+                setTimeout(function() { s.popupOverlay.click() }, 2000)
+            }
+        },
 
-        // // Checks clicks while popup is open, ends when user clicks outside of popup
-        // checkPopupClickExport: function(event) {
-        //     console.log(">> checkPopupClick")
-        //     let target = event.target
-        //     if (!s.popupBox.contains(target)) {
-        //         document.removeEventListener('click', MenuMaker.checkPopupClickExport, true)
-        //         MenuMaker.togglePopupBox()
-        //     } else {
-        //         navigator.clipboard.writeText(s.popupBody.innerText)
-        //         let bColor = document.documentElement.style.getPropertyValue('--popupBackground')
-        //         s.popupBox.style.backgroundColor = 'green'
-        //         setTimeout(function() { s.popupBox.style.backgroundColor = bColor }, 300)
-        //     }
-        // },
+        // Checks clicks while popup is open, ends when user clicks outside of popup
+        checkPopupClickExport: function(event) {
+            console.log(">> checkPopupClick")
+            let target = event.target
+            if (!s.popupBox.contains(target)) {
+                document.removeEventListener('click', MenuMaker.checkPopupClickExport, true)
+                MenuMaker.togglePopupBox()
+            } else {
+                navigator.clipboard.writeText(s.popupBody.innerText)
+                let bColor = document.documentElement.style.getPropertyValue('--popupBackground')
+                s.popupBox.style.backgroundColor = 'green'
+                setTimeout(function() { s.popupBox.style.backgroundColor = bColor }, 300)
+            }
+        },
 
-        // // Returns reversed string (used to obfuscate base64 encoded session)
-        // reverseString: function(str) {
-        //     return str.split('').reverse().join('')
-        // },
+        // Returns reversed string (used to obfuscate base64 encoded session)
+        reverseString: function(str) {
+            return str.split('').reverse().join('')
+        },
 
-        // // Updates session with the active table names/items (pulled from HTML)
-        // // Called before changing table group with edit mode active
-        // cacheActiveTables: function() {
-        //     console.log(">> cacheActiveTables")
-        //     let tableNames = ['', '', '', '', '', '', '', '', '', '']
-        //     let tableData = [[], [], [], [], [], [], [], [], [], []]
-        //     for (let x = 0; x < 10; x++) {
-        //         let table = s.tables[x]
-        //         tableNames[x] = table.querySelector('.table-title').innerText
-        //         let tableItems = table.querySelectorAll('.item-content')
-        //         for (let y = 0; y < tableItems.length; y++) {
-        //             tableData[x].push(tableItems[y].innerText)
-        //         }
-        //     }
-        //     session.names[s.groupIndex].tables = tableNames
-        //     session.tables[s.groupIndex] = tableData
-        // },
+        // Updates session with the current table names, group names, and group items
+        // Called before changing table group with edit mode active
+        cacheActiveTables: function() {
+            console.log(">> cacheActiveTables")
+            let newTables = DEFAULT_SESSION.tables
+            for (let x = 0; x < 10; x++) {
+                newTables[x].name = s.tableTitles[x].innerText
+                let tableGroups = s.tables[x].querySelectorAll('.table-group')
+                for (let y = 0; y < tableGroups.length; y++) {
+                    let groupName = tableGroups[y].querySelector('.table-group-name').innerText
+                    let groupItems = tableGroups[y].querySelectorAll('.item-content')
+                    let itemContents = []
+                    for (let z = 0; z < groupItems.length; z++) {
+                        itemContents.push(groupItems[z].innerText)
+                    }
+                    // If ungrouped, push to existing group object in default session, else create new
+                    if (groupName == 'ungrouped') {
+                        newTables[x].groups[0].items = itemContents
+                    } else {
+                        let newGroupObject = {
+                            "name": groupName,
+                            "items": itemContents
+                        }
+                        newTables[x].groups.push(newGroupObject)
+                    }
+                }
+            }
+            s.session.tables = newTables
+        },
 
-        // // Updates session with the current menu dishes
-        // // Re-caching the entire menu is easier than deleting specific dishes from the session
-        // cacheMenu: function() {
-        //     for (let x = 0; x < 5; x++) {
-        //         let dishList = []
-        //         let dishes = s.menuGroups[x].querySelectorAll('.menu-dish')
-        //         dishes.forEach(dish => {
-        //             let d = {
-        //                 'id': dish.querySelector('.dish-id').innerText,
-        //                 'title': dish.querySelector('.dish-title').innerText,
-        //                 'items': dish.querySelector('.dish-items').innerText
-        //             }
-        //             dishList.push(d)
-        //         })
-        //         session.menu[x] = dishList
-        //     }
-        // },
+        // Updates session with the current menu group names and dishes
+        cacheMenu: function() {
+            console.log(">> cacheMenu")
+            let newMenu = DEFAULT_SESSION.menu
+            let menuGroups = s.menu.querySelectorAll('.menu-group')
+            for (let x = 0; x < menuGroups.length; x++) {
+                let groupName = menuGroups[x].querySelector('.menu-group-name').innerText
+                let groupDishes = menuGroups[x].querySelectorAll('.menu-dish')
+                let dishContents = []
+                for (let y = 0; y < groupDishes.length; y++) {
+                    let dish = {
+                        "id": groupDishes[y].querySelector('.dish-id').innerText,
+                        "title": groupDishes[y].querySelector('.dish-title').innerText,
+                        "items": groupDishes[y].querySelector('.dish-items').innerText,
+                    }
+                    dishContents.push(dish)
+                }
+                // If ungrouped, push to existing group object in default session, else create new
+                if (groupName == 'ungrouped') {
+                    newMenu[0].dishes = dishContents
+                } else {
+                    let newGroupObject = {
+                        "name": groupName,
+                        "items": dishContents
+                    }
+                    newMenu.push(newGroupObject)
+                }
+            }
+            s.session.menu = newMenu
+        },
 
-        // // POST updated session object to Flask
-        // sendPost: function() {
-        //     console.log(">> postSession")
-        //     let data = new FormData()
-        //     data.append('names', JSON.stringify(session.names))
-        //     data.append('tables', JSON.stringify(session.tables))
-        //     data.append('menu', JSON.stringify(session.menu))
-        //     data.append('settings', JSON.stringify(session.settings))
-        //     let xhr = new XMLHttpRequest
-        //     xhr.responseType = 'json'
-        //     xhr.open('POST', '/')
-        //     xhr.send(data)
-        // },
+        // Update localStorage object
+        updateLocalStorage: function() {
+            console.log(">> updateLocalStorage")
+            localStorage.setItem('tables', JSON.stringify(s.session.tables))
+            localStorage.setItem('menu', JSON.stringify(s.session.menu))
+            localStorage.setItem('archive', JSON.stringify(s.session.archive))
+            localStorage.setItem('settings', JSON.stringify(s.session.settings))
+        },
 
         // // Deletes all ingredients and dishes
         // wipeTablesAndMenus: function() {
@@ -708,162 +727,156 @@ document.addEventListener('DOMContentLoaded', function() {
         //         let tableItems = table.querySelector('.table-items')
         //         tableItems.innerHTML = ''
         //     })
-        //     s.menuGroups.forEach(menu => {
-        //         let menuDishes = menu.querySelector('.menu-group-dishes')
-        //         menuDishes.innerHTML = ''
-        //     })
+        //     s.menuBody.innerHTML = ''
         // },
 
+        //
+        clickElement: function(event) {
+            console.log(">> clickElement")
+            s.clickItem = event.target
+            document.addEventListener('mouseup', MenuMaker.dropElement)
+            //document.addEventListener('mousemove', MenuMaker.dragElement)
+        },
 
-        // //
-        // clickElement: function(event) {
-        //     console.log(">> clickElement")
-        //     s.clickItem = event.target
-        //     document.addEventListener('mouseup', MenuMaker.dropElement)
-        //     document.addEventListener('mousemove', MenuMaker.dragElement)
-        // },
+        //
+        dragElement: function(event) {
+            console.log(">> dragElement")
+            if (!s.dragged) {
+                s.dragged = true
+                MenuMaker.toggleItemDeleteOverlay()
+                MenuMaker.grabElement(event)
+            }
+            s.dragClone.style.left = (event.clientX - s.startPos.offsetX) + 'px' 
+            s.dragClone.style.top = (event.clientY - s.startPos.offsetY) + 'px'
+            // Detect when mouse enters a valid drop point, update DOM
+            s.dragClone.style.visibility = 'hidden'
+            let hoverElement = document.elementFromPoint(event.clientX, event.clientY)
+            if (!hoverElement) { return }
+            let hoverClasses = [...hoverElement.classList].join('')
+            s.dragClone.style.visibility = 'visible'
+            if (s.lastHover !== hoverClasses) {
+                s.lastHover = hoverClasses
+                s.dropBox = MenuMaker.isValidDrop(hoverElement)
+                let draggingOverDelete = false
+                // Update DOM while dragging over valid drop locations
+                if (s.dropBox) {
+                    console.log("DROP BOX: ", s.dropBox)
+                    if (s.dropBox.classList.contains('controls')) {
+                        s.isHidden = true
+                        draggingOverDelete = true
+                        s.itemDeleteOverlay.classList.add('drop')
+                        s.dragItem.style.display = 'none'
+                    }
+                    else if (s.dropBox.classList.contains('table')) {
+                        let tableDropPos = MenuMaker.getTableDropPos(s.dropBox, event.clientY)
+                        MenuMaker.insertChildAtIndex(s.dropBox, tableDropPos)
+                    } else if (s.dropBox.classList.contains('menu')) {
+                        console.log("MENU DROP")
+                    }
+                }
+                // Reset delete item overlay styles, unhide element
+                if (s.isHidden && !draggingOverDelete) {
+                    s.isHidden = false
+                    s.itemDeleteOverlay.classList.remove('drop')
+                    s.dragItem.style.display = 'block'
+                }
+            }
+        },
 
-        // //
-        // grabElement: function(event) {
-        //     console.log(">> grabElement")
-        //     // clickItem used instead of event.target to prevent error if grabbing by border
-        //     s.dragItem = s.clickItem.closest('.table-item')
-        //     let clone = s.dragItem.cloneNode(true)
-        //     s.dragItem.classList.add('drag-item')
-        //     clone.classList.add('drag-clone')
-        //     document.body.append(clone)
-        //     s.dragClone = document.querySelector('.drag-clone')
+        //
+        grabElement: function(event) {
+            console.log(">> grabElement")
+            // clickItem used instead of event.target to prevent error if grabbing by border
+            s.dragItem = s.clickItem.closest('.table-item')
+            let clone = s.dragItem.cloneNode(true)
+            s.dragItem.classList.add('drag-item')
+            clone.classList.add('drag-clone')
+            document.body.append(clone)
+            s.dragClone = document.querySelector('.drag-clone')
 
-        //     let pos = s.dragItem.getBoundingClientRect()
-        //     s.startPos = {
-        //         'offsetX': event.clientX - pos.left,
-        //         'offsetY': event.clientY - pos.top
-        //     }
-        //     s.dragClone.style.left = pos.left + 'px'
-        //     s.dragClone.style.top = pos.top + 'px'
-        // },
+            let pos = s.dragItem.getBoundingClientRect()
+            s.startPos = {
+                'offsetX': event.clientX - pos.left,
+                'offsetY': event.clientY - pos.top
+            }
+            s.dragClone.style.left = pos.left + 'px'
+            s.dragClone.style.top = pos.top + 'px'
+        },
 
-        // //
-        // dragElement: function(event) {
-        //     console.log(">> dragElement")
-        //     if (!s.dragged) {
-        //         s.dragged = true
-        //         MenuMaker.toggleItemDeleteOverlay()
-        //         MenuMaker.grabElement(event)
-        //     }
-        //     s.dragClone.style.left = (event.clientX - s.startPos.offsetX) + 'px' 
-        //     s.dragClone.style.top = (event.clientY - s.startPos.offsetY) + 'px'
+        //
+        dropElement: function(event) {
+            console.log(">> dropElement")
+            if (s.dragged) {
+                if (s.dropBox) {
+                    if (s.dropBox.classList.contains('controls')) {
+                        s.dragItem.remove()
+                    } else if (s.dropBox.classList.contains('table')) {
+                        let activeItems = s.dropBox.querySelectorAll('.table-item.selected')
+                        if (activeItems.length > 1) {
+                            activeItems.forEach(item => { item.classList.remove('selected') })
+                            MenuMaker.updateBuildBox()
+                        }
+                    }
+                }
+                s.dragged = false
+                s.dragItem.classList.remove('drag-item')
+                s.dragClone.remove()
+                s.clickItem = null
+                s.dragItem = null
+                s.dragClone = null
+                s.dropBox = null
+                MenuMaker.toggleItemDeleteOverlay()
+                MenuMaker.cacheActiveTables()
+                MenuMaker.cacheMenu()
+                MenuMaker.updateLocalStorage()
+            } else {
+                MenuMaker.selectTableItem(event)
+            }
+            document.removeEventListener('mousemove', MenuMaker.dragElement)
+            document.removeEventListener('mouseup', MenuMaker.dropElement)
+        },
 
-        //     // Detect when mouse enters a valid drop point, update DOM
-        //     s.dragClone.style.visibility = 'hidden'
-        //     let hoverElement = document.elementFromPoint(event.clientX, event.clientY)
-        //     if (!hoverElement) { return }
-        //     let hoverClasses = [...hoverElement.classList].join('')
-        //     s.dragClone.style.visibility = 'visible'
-        //     if (s.lastHover !== hoverClasses) {
-        //         s.lastHover = hoverClasses
-        //         s.dropBox = MenuMaker.isValidDrop(hoverElement)
-        //         let draggingOverDelete = false
-        //         // Update DOM while dragging over valid drop locations
-        //         if (s.dropBox) {
-        //             console.log("DROP BOX: ", s.dropBox)
-        //             if (s.dropBox.classList.contains('controls')) {
-        //                 s.isHidden = true
-        //                 draggingOverDelete = true
-        //                 s.itemDeleteOverlay.classList.add('drop')
-        //                 s.dragItem.style.display = 'none'
-        //             }
-        //             else if (s.dropBox.classList.contains('table')) {
-        //                 let tableDropPos = MenuMaker.getTableDropPos(s.dropBox, event.clientY)
-        //                 MenuMaker.insertChildAtIndex(s.dropBox, tableDropPos)
-        //             } else if (s.dropBox.classList.contains('menu')) {
-        //                 console.log("MENU DROP")
-        //             }
-        //         }
-        //         // Reset delete item overlay styles, unhide element
-        //         if (s.isHidden && !draggingOverDelete) {
-        //             s.isHidden = false
-        //             s.itemDeleteOverlay.classList.remove('drop')
-        //             s.dragItem.style.display = 'block'
-        //         }
-        //     }
-            
-        // },
+        //
+        isValidDrop: function(hoverElement) {
+            console.log(">> isValidDrop")
+            let target = null
+            if (!target) { target = hoverElement.closest('.table') }
+            if (!target) { target = hoverElement.closest('.controls') }
+            if (!target) { target = hoverElement.closest('.menu') }
+            return target
+        },
 
-        // //
-        // dropElement: function(event) {
-        //     console.log(">> dropElement")
-        //     if (s.dragged) {
-        //         if (s.dropBox) {
-        //             if (s.dropBox.classList.contains('controls')) {
-        //                 s.dragItem.remove()
-        //             } else if (s.dropBox.classList.contains('table')) {
-        //                 let activeItems = s.dropBox.querySelectorAll('.table-item.selected')
-        //                 if (activeItems.length > 1) {
-        //                     activeItems.forEach(item => { item.classList.remove('selected') })
-        //                     MenuMaker.updateBuildBox()
-        //                 }
-        //             }
-        //         }
-        //         s.dragged = false
-        //         s.dragItem.classList.remove('drag-item')
-        //         s.dragClone.remove()
-        //         s.clickItem = null
-        //         s.dragItem = null
-        //         s.dragClone = null
-        //         s.dropBox = null
-        //         MenuMaker.toggleItemDeleteOverlay()
-        //         MenuMaker.cacheActiveTables()
-        //         MenuMaker.cacheMenu()
-        //         MenuMaker.sendPost()
-        //     } else {
-        //         MenuMaker.selectTableItem(event)
-        //     }
-        //     document.removeEventListener('mousemove', MenuMaker.dragElement)
-        //     document.removeEventListener('mouseup', MenuMaker.dropElement)
-        // },
+        // 
+        getTableDropPos: function(table, clientY) {
+            console.log(">> getTableDropPos")
+            let items = table.querySelectorAll('.table-item')
+            if (!items) { return 0 }
+            for (let i = 0; i < items.length; i++) {
+                let itemBox = items[i].getBoundingClientRect()
+                let middle = itemBox.bottom - (itemBox.height / 2)
+                if (clientY <= middle) { return i }
+            }
+            return items.length
+        },
 
-        // //
-        // isValidDrop: function(hoverElement) {
-        //     console.log(">> isValidDrop")
-        //     let target = null
-        //     if (!target) { target = hoverElement.closest('.table') }
-        //     if (!target) { target = hoverElement.closest('.controls') }
-        //     if (!target) { target = hoverElement.closest('.menu') }
-        //     return target
-        // },
-
-        // // 
-        // getTableDropPos: function(table, clientY) {
-        //     console.log(">> getTableDropPos")
-        //     let items = table.querySelectorAll('.table-item')
-        //     if (!items) { return 0 }
-        //     for (let i = 0; i < items.length; i++) {
-        //         let itemBox = items[i].getBoundingClientRect()
-        //         let middle = itemBox.bottom - (itemBox.height / 2)
-        //         if (clientY <= middle) { return i }
-        //     }
-        //     return items.length
-        // },
-
-        // //
-        // insertChildAtIndex: function(dropBox, index) {
-        //     console.log(">> insertChildAtIndex")
-        //     let parent
-        //     if (dropBox.classList.contains('table')) {
-        //         parent = dropBox.querySelector('.table-items')
-        //     } else if (dropBox.classList.contains('.menu-group')) {
-        //         parent = dropBox.querySelector('.menu-group-dishes')
-        //     } else {
-        //         console.warn("ERROR INVALID DROPBOX")
-        //         return
-        //     }
-        //     if (index > parent.children.length) {
-        //         parent.appendChild(s.dragItem)
-        //     } else {
-        //         parent.insertBefore(s.dragItem, parent.children[index])
-        //     }
-        // },
+        //
+        insertChildAtIndex: function(dropBox, index) {
+            console.log(">> insertChildAtIndex")
+            let parent
+            if (dropBox.classList.contains('table')) {
+                parent = dropBox.querySelector('.table-items')
+            } else if (dropBox.classList.contains('.menu-group')) {
+                parent = dropBox.querySelector('.menu-group-dishes')
+            } else {
+                console.warn("ERROR INVALID DROPBOX")
+                return
+            }
+            if (index > parent.children.length) {
+                parent.appendChild(s.dragItem)
+            } else {
+                parent.insertBefore(s.dragItem, parent.children[index])
+            }
+        },
 
         //
         toggleItemDeleteOverlay: function() {

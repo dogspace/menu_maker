@@ -1,6 +1,6 @@
 
 
-const DEFAULT_STORAGE = {
+const DEFAULT_SESSION = {
     "tables": [
         {   "name": "Table name",
             "groups": [{ "name": "ungrouped", "items": [] }]
@@ -53,7 +53,7 @@ const DEFAULT_STORAGE = {
 }
 
 
-const DEFAULT_STORAGE_TESTING = {
+const DEFAULT_SESSION_TESTING = {
     "tables": [
         {   "name": "Protein",
             "groups": [ {"name": "ungrouped", "items": ["Other1", "Other2"]},
@@ -117,6 +117,6 @@ const DEFAULT_STORAGE_TESTING = {
 
 
 export {
-    DEFAULT_STORAGE as DEFAULT_STORAGE,
-    DEFAULT_STORAGE_TESTING as DEFAULT_STORAGE_TESTING
+    DEFAULT_SESSION as DEFAULT_SESSION,
+    DEFAULT_SESSION_TESTING as DEFAULT_SESSION_TESTING
 }
