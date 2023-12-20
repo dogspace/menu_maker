@@ -196,7 +196,7 @@ body {
 .dish-build-container {
     position: relative;
     height: 6rem;
-    width: min(35rem, 100%);
+    width: min(42rem, 100%);
     margin: 0.25rem auto;
     display: flex;
     flex-flow: row nowrap;
@@ -423,6 +423,10 @@ body {
     width: 100%;
 }
 
+.table-group.ungrouped .table-group-name {
+    display: none;
+}
+
 .table-group-name {
     height: 2rem;
     width: 19.5rem;
@@ -434,7 +438,7 @@ body {
     color: var(--text1)
 }
 
-.table-group .table-item {
+.table-group:not(.ungrouped) .table-item {
     margin-left: 0.5rem;
 }
 

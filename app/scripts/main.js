@@ -155,11 +155,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     let className = MenuMaker.groupNameToClassName(groupName)
                     let groupItems = tableGroups[y].items
                     let itemBox = tableItems
-                    if (groupName != 'ungrouped') {
-                        let newGroup = createElement.tableGroupHTML(groupName, className)
-                        tableItems.innerHTML += newGroup
-                        itemBox = tableItems.querySelector('.table-group.' + className)
-                    }
+                    let newGroup = createElement.tableGroupHTML(groupName, className)
+                    tableItems.innerHTML += newGroup
+                    itemBox = tableItems.querySelector('.table-group.' + className)
                     if (itemBox) {
                         for (let z = 0; z < groupItems.length; z++) {
                             let newItem = createElement.tableItemHTML(groupItems[z])
@@ -218,15 +216,15 @@ document.addEventListener('DOMContentLoaded', function() {
             let text = target.value
             if (text.trim() == '') { return }
             let newItem = createElement.tableItemHTML(text)
-            let tableItems = target.parentElement.querySelector('.table-items')
-            tableItems.insertAdjacentHTML('afterbegin', newItem)
+            let tableGroup = target.parentElement.querySelector('.table-group.ungrouped')
+            tableGroup.insertAdjacentHTML('afterbegin', newItem)
             target.value = ''
             // If item was created with edit mode active, set edit mode styles/actions
             if (s.editModeActive) { MenuMaker.toggleTableEditMode() }
             // Rebind UI actions for all items in this table
             MenuMaker.bindDynamicUIActions()
             // Update session
-            let table = tableItems.parentElement.parentElement
+            let table = tableGroup.closest('.table')
             let indexClass = table.classList[1]
             let tableIndex = s.tableOrder.indexOf(indexClass)
             s.session.tables[tableIndex].groups[0].items.push(text)
@@ -353,6 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     tableTitle.style.cursor = 'text'
                     tableTitle.contentEditable = true
                     tableGroups.forEach(group => {
+                        if (group.classList.contains('ungrouped')) { return }
                         group.addEventListener('keydown', MenuMaker.checkKeypress, true)
                         group.style.cursor = 'text'
                         group.contentEditable = true
@@ -367,6 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     tableTitle.style.cursor = 'default'
                     tableTitle.contentEditable = false
                     tableGroups.forEach(group => {
+                        if (group.classList.contains('ungrouped')) { return }
                         group.removeEventListener('keydown', MenuMaker.checkKeypress, true)
                         group.style.cursor = 'pointer'
                         group.contentEditable = false
