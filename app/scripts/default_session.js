@@ -45,8 +45,6 @@ const DEFAULT_SESSION = {
     "settings": {
         "color_theme": 0,
         "dish_loc": 0,
-        "group_tables": 0,
-        "group_menu": 0,
         "number_menu": 0,
         "pin_archive": 0
     }
@@ -107,8 +105,6 @@ const DEFAULT_SESSION_TESTING = {
     ],
     "settings": {
         "color_theme": 0,
-        "group_tables": 0,
-        "group_menu": 0,
         "number_menu": 0,
         "dish_loc": 0,
         "pin_archive": 0

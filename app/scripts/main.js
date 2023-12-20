@@ -19,10 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
             'settingsMenu': document.querySelector('.settings-menu'),
             'colorThemeButton': document.querySelector('.color-theme'),
             'colorThemeSpan': document.querySelector('.color-theme span'),
-            'groupTablesButton': document.querySelector('.group-tables'),
-            'groupTablesSpan': document.querySelector('.group-tables span'),
-            'groupMenuButton': document.querySelector('.group-menu'),
-            'groupMenuSpan': document.querySelector('.group-menu span'),
             'numberMenuButton': document.querySelector('.number-menu'),
             'numberMenuSpan': document.querySelector('.number-menu span'),
             'dishSpawnLocButton': document.querySelector('.dish-spawn-loc'),
@@ -86,8 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
             MenuMaker.bindStaticUIActions()
             MenuMaker.bindDynamicUIActions()
             MenuMaker.setColorTheme()
-            MenuMaker.setTableGroups()
-            MenuMaker.setMenuGroups()
         },
 
         // Bind Static UI actions (called at init)
@@ -97,8 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
             s.editModeButton.addEventListener('click', MenuMaker.toggleEditMode)
             s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
             s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
-            s.groupTablesButton.addEventListener('click', MenuMaker.toggleTableGroups)
-            s.groupMenuButton.addEventListener('click', MenuMaker.toggleMenuGroups)
             s.importDataButton.addEventListener('click', MenuMaker.importData)
             s.exportDataButton.addEventListener('click', MenuMaker.exportData)
 
@@ -114,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
             s.buildAdd.addEventListener('click', MenuMaker.createNewMenuDish)
             s.buildDeselect.addEventListener('click', MenuMaker.deselectAllItems)
             s.tableInputs.forEach(input => { input.addEventListener('keydown', MenuMaker.checkKeypress, true) })
+            s.createTableGroupButtons.forEach(button => { button.addEventListener('click', MenuMaker.createNewTableGroup) })
         },
 
         // Bind dynamic UI actions (called at init and after creating a new table/menu item)
@@ -159,12 +152,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 let tableGroups = s.session.tables[x].groups
                 for (let y = 0; y < tableGroups.length; y++) {
                     let groupName = tableGroups[y].name
+                    let className = MenuMaker.groupNameToClassName(groupName)
                     let groupItems = tableGroups[y].items
                     let itemBox = tableItems
                     if (groupName != 'ungrouped') {
-                        let newGroup = createElement.tableGroupHTML(groupName)
+                        let newGroup = createElement.tableGroupHTML(groupName, className)
                         tableItems.innerHTML += newGroup
-                        itemBox = tableItems.querySelector('.table-group.' + groupName)
+                        itemBox = tableItems.querySelector('.table-group.' + className)
                     }
                     if (itemBox) {
                         for (let z = 0; z < groupItems.length; z++) {
@@ -172,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             itemBox.innerHTML += newItem
                         }
                     } else {
-                        console.error("ERROR: " + groupName + " TABLE GROUP NOT FOUND")
+                        console.error("ERROR: " + className + " TABLE GROUP NOT FOUND")
                         return
                     }
                 }
@@ -180,12 +174,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update menu
             for (let x = 0; x < s.session.menu.length; x++) {
                 let groupName = s.session.menu[x].name
+                let className = MenuMaker.groupNameToClassName(groupName)
                 let groupDishes = s.session.menu[x].dishes
                 let dishBox = s.menuBody
                 if (groupName != 'ungrouped') {
-                    let newGroup = createElement.menuGroupHTML(groupName)
+                    let newGroup = createElement.menuGroupHTML(groupName, className)
                     s.menuBody.innerHTML += newGroup
-                    dishBox = s.menuBody.querySelector('.menu-group.' + groupName)
+                    dishBox = s.menuBody.querySelector('.menu-group.' + className)
                 }
                 if (dishBox) {
                     for (let y = 0; y < groupDishes.length; y++) {
@@ -194,10 +189,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         dishBox.innerHTML += newItem
                     }
                 } else {
-                    console.error("ERROR: " + groupName + " MENU GROUP NOT FOUND")
+                    console.error("ERROR: " + className + " MENU GROUP NOT FOUND")
                     return
                 }
             }
+        },
+
+        // Creates a new table group
+        createNewTableGroup: function(event) {
+            console.log(">> createNewTableGroup")
+            let table = event.target.closest('.table')
+            let tableItems = table.querySelector('.table-items')
+            tableItems.innerHTML += createElement.tableGroupHTML('New group', 'new-group')
+            // Update session
+            let indexClass = table.classList[1]
+            let tableIndex = s.tableOrder.indexOf(indexClass)
+            let newGroupObject = {
+                "name": "New group",
+                "items": []
+            }
+            s.session.tables[tableIndex].groups.push(newGroupObject)
+            MenuMaker.updateLocalStorage()
         },
 
         // Creates a new table item based on table input field
@@ -207,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (text.trim() == '') { return }
             let newItem = createElement.tableItemHTML(text)
             let tableItems = target.parentElement.querySelector('.table-items')
-            tableItems.innerHTML += newItem
+            tableItems.insertAdjacentHTML('afterbegin', newItem)
             target.value = ''
             // If item was created with edit mode active, set edit mode styles/actions
             if (s.editModeActive) { MenuMaker.toggleTableEditMode() }
@@ -217,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let table = tableItems.parentElement.parentElement
             let indexClass = table.classList[1]
             let tableIndex = s.tableOrder.indexOf(indexClass)
-            s.session.tables[tableIndex].groups[0].push(text)
+            s.session.tables[tableIndex].groups[0].items.push(text)
             MenuMaker.updateLocalStorage()
         },
 
@@ -265,18 +277,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
-        // // Deletes all items from a single table
-        // deleteTableItems: function(event) {
-        //     console.log(">> deleteTableItems")
-        //     let table = event.target.closest('.table')
-        //     let tableItems = table.querySelector('.table-items')
-        //     tableItems.innerHTML = ''
-        // },
-
         //
         selectTableItem: function(event) {
             console.log(">> selectTableItem")
-            console.log(event.target)
             let tableItem = event.target
             if (tableItem.classList[0] != 'table-item') {
                 tableItem = tableItem.closest('.table-item')
@@ -343,11 +346,17 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleTableEditMode: function() {
             s.tables.forEach(table => {
                 let tableTitle = table.querySelector('.table-title')
+                let tableGroups = table.querySelectorAll('.table-group')
                 let tableItems = table.querySelectorAll('.item-content')
                 if (s.editModeActive) {
                     tableTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
                     tableTitle.style.cursor = 'text'
                     tableTitle.contentEditable = true
+                    tableGroups.forEach(group => {
+                        group.addEventListener('keydown', MenuMaker.checkKeypress, true)
+                        group.style.cursor = 'text'
+                        group.contentEditable = true
+                    })
                     tableItems.forEach(item => {
                         item.addEventListener('keydown', MenuMaker.checkKeypress, true)
                         item.style.cursor = 'text'
@@ -357,6 +366,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     tableTitle.removeEventListener('keydown', MenuMaker.checkKeypress, true)
                     tableTitle.style.cursor = 'default'
                     tableTitle.contentEditable = false
+                    tableGroups.forEach(group => {
+                        group.removeEventListener('keydown', MenuMaker.checkKeypress, true)
+                        group.style.cursor = 'pointer'
+                        group.contentEditable = false
+                    })
                     tableItems.forEach(item => {
                         item.removeEventListener('keydown', MenuMaker.checkKeypress, true)
                         item.style.cursor = 'pointer'
@@ -451,7 +465,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Increments color theme setting, updates session
         changeColorTheme: function() {
             console.log(">> changeColorTheme")
-            let theme = (session.settings.color_theme + 1) % 4
+            let theme = (s.session.settings.color_theme + 1) % 4
             s.session.settings.color_theme = theme
             MenuMaker.setColorTheme()
             MenuMaker.updateLocalStorage()
@@ -500,48 +514,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             } else if (theme == 'SEPIA') {
                 document.documentElement.style.setProperty('--background1', '#DBCBB7')
-            }
-        },
-
-        // Changes visibility of table groups, updates session
-        toggleTableGroups: function() {
-            console.log(">> toggleTableGroups")
-            s.session.settings.group_tables = s.session.settings.group_tables == 0 ? 1 : 0
-            MenuMaker.setTableGroups()
-            MenuMaker.updateLocalStorage()
-        },
-
-        // Sets visibility of table groups based on session
-        setTableGroups: function() {
-            console.log(">> setTableGroups")
-            let tableGroups = document.querySelectorAll('.table-group')
-            if (s.session.settings.group_tables == 0) {
-                s.groupTablesSpan.innerText = 'OFF'
-                tableGroups.forEach(group => group.classList.add('hidden'))
-            } else {
-                s.groupTablesSpan.innerText = 'ON'
-                tableGroups.forEach(group => group.classList.remove('hidden'))
-            }
-        },
-
-        // Changes visibility of menu groups, updates session
-        toggleMenuGroups: function() {
-            console.log(">> toggleMenuGroups")
-            s.session.settings.group_menu = s.session.settings.group_menu == 0 ? 1 : 0
-            MenuMaker.setMenuGroups()
-            MenuMaker.updateLocalStorage()
-        },
-
-        // Sets visibility of menu groups based on session
-        setMenuGroups: function() {
-            console.log(">> setMenuGroups")
-            let menuGroups = document.querySelectorAll('.menu-group')
-            if (s.session.settings.group_menu == 0) {
-                s.groupMenuSpan.innerText = 'OFF'
-                menuGroups.forEach(group => group.classList.add('hidden'))
-            } else {
-                s.groupMenuSpan.innerText = 'ON'
-                menuGroups.forEach(group => group.classList.remove('hidden'))
             }
         },
 
@@ -621,12 +593,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isValid) {
                 s.popupWarning.innerText = 'INVALID INPUT'
             } else {
+                console.warn("checkPopupKeypress - Import unfinished")
                 s.popupWarning.innerText = 'VALID INPUT - UPADING SITE'
-                s.session = newSession
-                MenuMaker.wipeTablesAndMenus()
-                MenuMaker.init()
-                MenuMaker.updateLocalStorage()
-                setTimeout(function() { s.popupOverlay.click() }, 2000)
+                // s.session = newSession
+                // MenuMaker.wipeTablesAndMenus()
+                // MenuMaker.init()
+                // MenuMaker.updateLocalStorage()
+                // setTimeout(function() { s.popupOverlay.click() }, 2000)
             }
         },
 
@@ -651,7 +624,6 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Updates session with the current table names, group names, and group items
-        // Called before changing table group with edit mode active
         cacheActiveTables: function() {
             console.log(">> cacheActiveTables")
             let newTables = DEFAULT_SESSION.tables
@@ -677,6 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
+            console.warn(newTables)
             s.session.tables = newTables
         },
 
@@ -719,16 +692,6 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('archive', JSON.stringify(s.session.archive))
             localStorage.setItem('settings', JSON.stringify(s.session.settings))
         },
-
-        // // Deletes all ingredients and dishes
-        // wipeTablesAndMenus: function() {
-        //     console.log(">> wipeTablesAndMenus")
-        //     s.tables.forEach(table => {
-        //         let tableItems = table.querySelector('.table-items')
-        //         tableItems.innerHTML = ''
-        //     })
-        //     s.menuBody.innerHTML = ''
-        // },
 
         //
         clickElement: function(event) {
@@ -881,6 +844,12 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         toggleItemDeleteOverlay: function() {
             s.itemDeleteOverlay.classList.toggle('hidden')
+        },
+
+        // Converts group name to HTML class name standards
+        groupNameToClassName: function(groupName) {
+            let className = groupName.toLowerCase()
+            return className.replace(' ', '-')
         },
 
 

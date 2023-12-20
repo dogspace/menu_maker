@@ -1,8 +1,8 @@
 
 // Return table group HTML
-const tableGroupHTML = (groupName) => {
+const tableGroupHTML = (groupName, className) => {
     return `
-        <div class="table-group hidden ` + groupName + `">
+        <div class="table-group ` + className + `">
             <div class="table-group-name">` + groupName + `</div>
         </div>`
 }
@@ -17,9 +17,9 @@ const tableItemHTML = (itemText) => {
 }
 
 // Return menu group HTML
-const menuGroupHTML = (groupName) => {
+const menuGroupHTML = (groupName, className) => {
     return `
-        <div class="menu-group hidden ` + groupName + `">
+        <div class="menu-group ` + className + `">
             <div class="menu-group-name">` + groupName + `</div>
         </div>`
 }
