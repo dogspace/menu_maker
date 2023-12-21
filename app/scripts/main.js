@@ -154,10 +154,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     let groupName = tableGroups[y].name
                     let className = MenuMaker.groupNameToClassName(groupName)
                     let groupItems = tableGroups[y].items
-                    let itemBox = tableItems
                     let newGroup = createElement.tableGroupHTML(groupName, className)
                     tableItems.innerHTML += newGroup
-                    itemBox = tableItems.querySelector('.table-group.' + className)
+                    let itemBox = tableItems.querySelector('.table-group.' + className)
                     if (itemBox) {
                         for (let z = 0; z < groupItems.length; z++) {
                             let newItem = createElement.tableItemHTML(groupItems[z])
@@ -174,12 +173,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 let groupName = s.session.menu[x].name
                 let className = MenuMaker.groupNameToClassName(groupName)
                 let groupDishes = s.session.menu[x].dishes
-                let dishBox = s.menuBody
-                if (groupName != 'ungrouped') {
-                    let newGroup = createElement.menuGroupHTML(groupName, className)
-                    s.menuBody.innerHTML += newGroup
-                    dishBox = s.menuBody.querySelector('.menu-group.' + className)
-                }
+                console.warn("GROUP NAME:", groupName)
+                console.warn("GROUP DISHES:", groupDishes)
+                let newGroup = createElement.menuGroupHTML(groupName, className)
+                s.menuBody.innerHTML += newGroup
+                let dishBox = s.menuBody.querySelector('.menu-group.' + className)
                 if (dishBox) {
                     for (let y = 0; y < groupDishes.length; y++) {
                         let dish = groupDishes[y]
@@ -208,6 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             s.session.tables[tableIndex].groups.push(newGroupObject)
             MenuMaker.updateLocalStorage()
+            MenuMaker.bindDynamicUIActions()
         },
 
         // Creates a new table item based on table input field
@@ -289,7 +288,8 @@ document.addEventListener('DOMContentLoaded', function() {
             let textBox = tableItem.querySelector('.item-content')
             if (textBox.contains(event.target) && s.editModeActive) { return }
             // Only allow one selection per table
-            let oldItem = tableItem.parentElement.querySelector('.table-item.selected')
+            let tableItems = tableItem.closest('.table-items')
+            let oldItem = tableItems.querySelector('.table-item.selected')
             if (oldItem) {
                 if (oldItem != tableItem) { oldItem.classList.toggle('selected') }
             }
@@ -649,7 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
-            console.warn(newTables)
+            //console.warn(newTables)
             s.session.tables = newTables
         },
 
@@ -676,7 +676,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     let newGroupObject = {
                         "name": groupName,
-                        "items": dishContents
+                        "dishes": dishContents
                     }
                     newMenu.push(newGroupObject)
                 }
@@ -698,7 +698,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> clickElement")
             s.clickItem = event.target
             document.addEventListener('mouseup', MenuMaker.dropElement)
-            //document.addEventListener('mousemove', MenuMaker.dragElement)
+            document.addEventListener('mousemove', MenuMaker.dragElement)
         },
 
         //
@@ -723,14 +723,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 let draggingOverDelete = false
                 // Update DOM while dragging over valid drop locations
                 if (s.dropBox) {
-                    console.log("DROP BOX: ", s.dropBox)
-                    if (s.dropBox.classList.contains('controls')) {
+                    //console.log("DROP BOX: ", s.dropBox)
+                    if (s.dropBox.classList.contains('item-delete-overlay')) {
                         s.isHidden = true
                         draggingOverDelete = true
                         s.itemDeleteOverlay.classList.add('drop')
                         s.dragItem.style.display = 'none'
                     }
-                    else if (s.dropBox.classList.contains('table')) {
+                    else if (s.dropBox.classList.contains('table') || s.dropBox.classList.contains('table-group')) {
                         let tableDropPos = MenuMaker.getTableDropPos(s.dropBox, event.clientY)
                         MenuMaker.insertChildAtIndex(s.dropBox, tableDropPos)
                     } else if (s.dropBox.classList.contains('menu')) {
@@ -749,7 +749,7 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         grabElement: function(event) {
             console.log(">> grabElement")
-            // clickItem used instead of event.target to prevent error if grabbing by border
+            // clickItem used instead of event.target to prevent error if dragging by border
             s.dragItem = s.clickItem.closest('.table-item')
             let clone = s.dragItem.cloneNode(true)
             s.dragItem.classList.add('drag-item')
@@ -771,10 +771,11 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> dropElement")
             if (s.dragged) {
                 if (s.dropBox) {
-                    if (s.dropBox.classList.contains('controls')) {
+                    if (s.dropBox.classList.contains('item-delete-overlay')) {
                         s.dragItem.remove()
-                    } else if (s.dropBox.classList.contains('table')) {
-                        let activeItems = s.dropBox.querySelectorAll('.table-item.selected')
+                    } else if (s.dropBox.classList.contains('table-group')) {
+                        let tableItems = s.dropBox.closest('.table-items')
+                        let activeItems = tableItems.querySelectorAll('.table-item.selected')
                         if (activeItems.length > 1) {
                             activeItems.forEach(item => { item.classList.remove('selected') })
                             MenuMaker.updateBuildBox()
@@ -803,8 +804,9 @@ document.addEventListener('DOMContentLoaded', function() {
         isValidDrop: function(hoverElement) {
             console.log(">> isValidDrop")
             let target = null
+            if (!target) { target = hoverElement.closest('.table-group') }
             if (!target) { target = hoverElement.closest('.table') }
-            if (!target) { target = hoverElement.closest('.controls') }
+            if (!target) { target = hoverElement.closest('.item-delete-overlay') }
             if (!target) { target = hoverElement.closest('.menu') }
             return target
         },
@@ -812,12 +814,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // 
         getTableDropPos: function(table, clientY) {
             console.log(">> getTableDropPos")
-            let items = table.querySelectorAll('.table-item')
+            let items = table.querySelectorAll('.table-item, .table-group-name')
             if (!items) { return 0 }
-            for (let i = 0; i < items.length; i++) {
+            for (let i = items.length - 1; i >= 0; i--) {
                 let itemBox = items[i].getBoundingClientRect()
-                let middle = itemBox.bottom - (itemBox.height / 2)
-                if (clientY <= middle) { return i }
+                if (clientY >= itemBox.top) { return i + 1 }
             }
             return items.length
         },
@@ -826,8 +827,11 @@ document.addEventListener('DOMContentLoaded', function() {
         insertChildAtIndex: function(dropBox, index) {
             console.log(">> insertChildAtIndex")
             let parent
-            if (dropBox.classList.contains('table')) {
-                parent = dropBox.querySelector('.table-items')
+            if (dropBox.classList.contains('table-group')) {
+                parent = dropBox
+                if (index == 0) { index = 1 }
+            } else if (dropBox.classList.contains('table')) {
+                parent = dropBox.querySelector('.table-group.ungrouped')
             } else if (dropBox.classList.contains('.menu-group')) {
                 parent = dropBox.querySelector('.menu-group-dishes')
             } else {
