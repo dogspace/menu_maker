@@ -423,19 +423,37 @@ body {
     width: 100%;
 }
 
-.table-group.ungrouped .table-group-name {
-    display: none;
+.table-group-tag {
+    height: 2.5rem;
+    width: 19.5rem;
+    padding-top: 0.5rem;
+    border-radius: 0.2rem;
+    border-bottom: 0.0625rem solid red;
 }
 
 .table-group-name {
-    height: 2rem;
-    width: 19.5rem;
-    margin-top: 0.5rem;
-    border-radius: 0.2rem;
-    border-bottom: 0.0625rem solid red;
+    float: left;
     line-height: 2rem;
     font-size: 1.2rem;
     color: var(--text1)
+}
+
+.table-group-handle {
+    float: right;
+    height: 2rem;
+    width: 2rem;
+    cursor: pointer;
+}
+
+.table-group-handle svg {
+    height: 2rem;
+    width: 2rem;
+    fill: var(--background1);
+    transition: fill 50ms linear;
+}
+
+.table-group-handle svg:hover {
+    fill: red;
 }
 
 .table-group:not(.ungrouped) .table-item {
@@ -598,7 +616,7 @@ body {
     overflow-y: auto;
 }
 
-.dish-delete {
+.dish-archive-button {
     position: absolute;
     top: 0.5rem;
     right: 0.5rem;
@@ -607,21 +625,19 @@ body {
     cursor: auto;
 }
 
-.dish-delete svg {
+.dish-archive-button svg {
     display: block;
     height: 100%;
     width: 2rem;
     margin: auto;
     fill: red;
     cursor: pointer;
+    fill: var(--background1);
+    transition: fill 50ms linear;
 }
 
-.dish-delete.inactive {
-    visibility: hidden;
-}
-
-.dish-delete.inactive svg {
-    cursor: auto;
+.dish-archive-button svg:hover {
+    fill: red;
 }
 
 
@@ -729,7 +745,7 @@ body {
 }
 
 
-/* ITEM DELETE OVERLAY (SHOWS WHILE DRAGGIN TABLE ITEMS) */
+/* ITEM DELETE OVERLAY (SHOWS WHILE DRAGGING ITEMS) */
 .item-delete-overlay {
     position: absolute;
     height: 10rem;
