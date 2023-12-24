@@ -515,10 +515,11 @@ body {
 /* MENU */
 .menu {
     display: flex;
-    flex-flow: column nowrap;
+    flex-flow: row nowrap;
     align-items: center;
+    justify-content: center;
     position: absolute;
-    height: calc(100% - 4rem);
+    height: calc(100% - 3.5rem);
     width: 100%;
     bottom: 0;
     left: 0;
@@ -538,14 +539,29 @@ body {
     display: none;
 }
 
-.menu-body {
+.menu-body,
+.menu-archive {
     display: flex;
     flex-flow: column nowrap;
-    width: min(50rem, 80%);
+    height: calc(100% - 8rem);
     min-width: 30rem;
-    margin-top: 6rem;
+    max-width: 70rem;
+    margin: 4rem;
+    padding: 2rem;
+    border: 0.25rem solid var(--background1);
+    border-radius: 0.25rem;
+    flex-grow: 1;
+    transition: 0.2s;
 }
 
+.menu-archive.hidden {
+    min-width: 0;
+    width: 0;
+    margin: 0;
+    padding: 0;
+    flex-grow: 0;
+    border: 0;
+}
 
 .menu-group {
     display: flex;
@@ -577,6 +593,7 @@ body {
     padding: 0.5rem;
     margin-top: 1rem;
     border-radius: 0.25rem;
+    cursor: pointer;
 }
 
 .menu-dish:hover {

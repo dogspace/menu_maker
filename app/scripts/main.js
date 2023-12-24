@@ -51,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
             'menu': document.querySelector('.menu'),
             'menuBody': document.querySelector('.menu-body'),
             //'menuGroups': document.querySelectorAll('.menu-group'),
-            //'menuGroupNames': document.querySelectorAll('.menu-group-name'),
             'menuButton': document.querySelector('.menu-button'),
             //
             'popupContainer': document.querySelector('.popup-container'),
@@ -115,7 +114,9 @@ document.addEventListener('DOMContentLoaded', function() {
             tableItems.forEach(item => { item.addEventListener('mousedown', MenuMaker.clickElement) })
             let tableGroupHandles = document.querySelectorAll('.table-group-handle')
             tableGroupHandles.forEach(handle => { handle.addEventListener('mousedown', MenuMaker.clickElement) })
-            // let menuDishes
+
+            let menuDishes = document.querySelectorAll('.menu-dish')
+            menuDishes.forEach(dish => { dish.addEventListener('mousedown', MenuMaker.clickElement) })
             // let menuGroupHandles
 
             // let dishArchiveButtons = s.menu.querySelectorAll('.dish-archive-button')
@@ -227,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let table = tableGroup.closest('.table')
             let indexClass = table.classList[1]
             let tableIndex = s.tableOrder.indexOf(indexClass)
-            s.session.tables[tableIndex].groups[0].items.push(text)
+            s.session.tables[tableIndex].groups[0].items.unshift(text)
             MenuMaker.updateLocalStorage()
         },
 
@@ -239,7 +240,9 @@ document.addEventListener('DOMContentLoaded', function() {
             let ingredients = s.buildItems.innerText
             // Ingredients and description are required, id is optional
             if (title.trim() != '' && ingredients.trim() != '') {
-                s.menuBody.innerHTML += createElement.menuDishHTML(id, title, ingredients)
+                let newItem = createElement.menuDishHTML(id, title, ingredients)
+                let menuGroup = s.menuBody.querySelector('.menu-group.ungrouped')
+                menuGroup.insertAdjacentHTML('afterbegin', newItem)
                 MenuMaker.deselectAllItems()
                 MenuMaker.cacheMenu()
                 MenuMaker.updateLocalStorage()
@@ -646,7 +649,8 @@ document.addEventListener('DOMContentLoaded', function() {
             let newMenu = JSON.parse(JSON.stringify(DEFAULT_SESSION.menu))
             let menuGroups = s.menu.querySelectorAll('.menu-group')
             for (let x = 0; x < menuGroups.length; x++) {
-                let groupName = menuGroups[x].querySelector('.menu-group-name').innerText
+                let groupTag = menuGroups[x].querySelector('.menu-group-name')
+                let groupName = groupTag ? groupTag.innerText : 'ungrouped'
                 let groupDishes = menuGroups[x].querySelectorAll('.menu-dish')
                 let dishContents = []
                 for (let y = 0; y < groupDishes.length; y++) {
@@ -668,6 +672,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     newMenu.push(newGroupObject)
                 }
             }
+            //console.warn("NEW MENU", newMenu)
             s.session.menu = newMenu
         },
 
@@ -675,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateLocalStorage: function() {
             console.log(">> updateLocalStorage")
             //localStorage.clear()
-            console.warn("UPDATING STORAGE WITH: ", s.session.tables)
+            console.warn("UPDATING STORAGE WITH: ", s.session)
             localStorage.setItem('tables', JSON.stringify(s.session.tables))
             localStorage.setItem('menu', JSON.stringify(s.session.menu))
             localStorage.setItem('archive', JSON.stringify(s.session.archive))
@@ -686,7 +691,7 @@ document.addEventListener('DOMContentLoaded', function() {
         clickElement: function(event) {
             console.log(">> clickElement")
             let target = event.target
-            if (!s.dragItem) { s.dragItem = target.closest('.table-item') }
+            s.dragItem = target.closest('.table-item')
             if (!s.dragItem) { s.dragItem = target.closest('.table-group') }
             if (!s.dragItem) { s.dragItem = target.closest('.menu-dish') }
             if (!s.dragItem) { s.dragItem = target.closest('.menu-group') }
@@ -700,7 +705,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> dragElement")
             if (!s.dragged) {
                 s.dragged = true
-                MenuMaker.toggleItemDeleteOverlay()
+                if (s.dragItem.classList.contains('table-item') || s.dragItem.classList.contains('table-group')) {
+                    MenuMaker.toggleItemDeleteOverlay()
+                }
                 MenuMaker.grabElement(event)
             }
             s.dragClone.style.left = (event.clientX - s.startPos.offsetX) + 'px' 
@@ -724,11 +731,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         s.itemDeleteOverlay.classList.add('drop')
                         s.dragItem.style.display = 'none'
                     }
-                    else if (s.dropBox.classList.contains('table-items') || s.dropBox.classList.contains('table-group')) {
+                    else if (s.dropBox.classList.contains('table-items') || s.dropBox.classList.contains('table-group') ||
+                            s.dropBox.classList.contains('menu-group') || s.dropBox.classList.contains('menu-body') || s.dropBox.classList.contains('menu-archive')) {
                         let tableDropPos = MenuMaker.getTableDropPos(event.clientY)
                         MenuMaker.insertChildAtIndex(tableDropPos)
-                    } else if (s.dropBox.classList.contains('menu')) {
-                        console.log("MENU DROP")
                     }
                 }
                 // Reset delete item overlay styles, unhide element
@@ -762,17 +768,19 @@ document.addEventListener('DOMContentLoaded', function() {
         dropElement: function(event) {
             console.log(">> dropElement")
             if (s.dragged) {
-                if (s.dropBox) {
+                if (s.dragItem.classList.contains('table-item') || s.dragItem.classList.contains('table-group')) {
                     if (s.dropBox.classList.contains('item-delete-overlay')) {
                         s.dragItem.remove()
-                    } else if (s.dropBox.classList.contains('table-group')) {
-                        let tableItems = s.dropBox.closest('.table-items')
-                        let activeItems = tableItems.querySelectorAll('.table-item.selected')
-                        if (activeItems.length > 1) {
-                            activeItems.forEach(item => { item.classList.remove('selected') })
-                            MenuMaker.updateBuildBox()
-                        }
                     }
+                    let tableItems = s.dropBox.closest('.table-items')
+                    let activeItems = tableItems.querySelectorAll('.table-item.selected')
+                    if (activeItems.length > 1) {
+                        activeItems.forEach(item => { item.classList.remove('selected') })
+                    }
+                    MenuMaker.toggleItemDeleteOverlay()
+                    MenuMaker.cacheActiveTables()
+                } else if (s.dragItem.classList.contains('menu-dish') ||s.dragItem.classList.contains('menu-group')) {
+                    MenuMaker.cacheMenu()
                 }
                 s.dragged = false
                 s.dragItem.classList.remove('drag-item')
@@ -780,9 +788,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 s.dragItem = null
                 s.dragClone = null
                 s.dropBox = null
-                MenuMaker.toggleItemDeleteOverlay()
-                MenuMaker.cacheActiveTables()
-                MenuMaker.cacheMenu()
+                MenuMaker.updateBuildBox()
                 MenuMaker.updateLocalStorage()
             } else {
                 MenuMaker.selectTableItem(event)
@@ -810,11 +816,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!dropBox) { dropBox = hoverElement.closest('.item-delete-overlay') }
             } else if (s.dragItem.classList.contains('menu-dish')) {
                 if (!dropBox) { dropBox = hoverElement.closest('.menu-group') }
-                if (!dropBox) { dropBox = hoverElement.closest('.menu-body') }
-                if (!dropBox) { dropBox = hoverElement.closest('.archive') }
+                if (!dropBox) {
+                    let menu = hoverElement.closest('.menu-body')
+                    if (menu) { dropBox = menu.querySelector('.menu-group.ungrouped') }
+                }
+                if (!dropBox) { dropBox = hoverElement.closest('.menu-archive') }
             } else if (s.dragItem.classList.contains('menu-group')) {
-                if (!dropBox) { dropBox = hoverElement.closest('.menu-body') }
-                if (!dropBox) { dropBox = hoverElement.closest('.archive') }
+                if (!dropBox) {
+                    let menu = hoverElement.closest('.menu-body')
+                    if (menu) { dropBox = menu }
+                }
+                if (!dropBox) { dropBox = hoverElement.closest('.menu-archive') }
             } else {
                 console.error("ERROR GETDROPBOX NOT FOUND")
             }
@@ -843,23 +855,6 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         insertChildAtIndex: function(index) {
             console.log(">> insertChildAtIndex")
-            // let parent
-            // if (s.dropBox.classList.contains('table-group')) {
-            //     parent = s.dropBox
-            //     if (index == 0) { index = 1 }
-            // } else if (s.dropBox.classList.contains('table-items')) {
-            //     parent = s.dropBox.querySelector('.table-group.ungrouped')
-            // } else if (s.dropBox.classList.contains('.menu-group')) {
-            //     parent = s.dropBox.querySelector('.menu-group-dishes')
-            // } else {
-            //     console.warn("ERROR INVALID DROPBOX")
-            //     return
-            // }
-            // if (index > parent.children.length) {
-            //     parent.appendChild(s.dragItem)
-            // } else {
-            //     parent.insertBefore(s.dragItem, parent.children[index])
-            // }
             if (index > s.dropBox.children.length) {
                 s.dropBox.appendChild(s.dragItem)
             } else {

@@ -25,10 +25,11 @@ const tableItemHTML = (itemText) => {
 
 // Return menu group HTML
 const menuGroupHTML = (groupName, className) => {
-    return `
-        <div class="menu-group ` + className + `">
-            <div class="menu-group-name">` + groupName + `</div>
-        </div>`
+    let groupTag = ''
+    if (groupName != 'ungrouped' && className != 'ungrouped') {
+        groupTag = `<div class="menu-group-name">` + groupName + `</div>`
+    }
+    return `<div class="menu-group ` + className + `">` + groupTag + `</div>`
 }
 
 // Return menu dish HTML
