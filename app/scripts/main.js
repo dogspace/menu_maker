@@ -49,6 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'tableOrder': ['_0', '_1', '_2', '_3', '_4', '_5', '_6', '_7', '_8', '_9'],
             // Menu
             'menu': document.querySelector('.menu'),
+            'menuArchiveButton': document.querySelector('.menu-archive-button'),
+            'menuArchive': document.querySelector('.menu-archive'),
             'menuBody': document.querySelector('.menu-body'),
             //'menuGroups': document.querySelectorAll('.menu-group'),
             'menuButton': document.querySelector('.menu-button'),
@@ -86,19 +88,18 @@ document.addEventListener('DOMContentLoaded', function() {
         bindStaticUIActions: function() {
             console.log(">> bindStaticUIActions <<")
             s.menuButton.addEventListener('click', MenuMaker.openMenu)
+            s.menuArchiveButton.addEventListener('click', MenuMaker.openArchive)
             s.editModeButton.addEventListener('click', MenuMaker.toggleEditMode)
             s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
             s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
             s.importDataButton.addEventListener('click', MenuMaker.importData)
             s.exportDataButton.addEventListener('click', MenuMaker.exportData)
-
             // s.numberMenuButton.addEventListener('click', MenuMaker.toggleMenuNumbers)
             // s.dishSpawnLocButton.addEventListener('click', MenuMaker.setDishSpawn)
             // s.deleteTablesButton.addEventListener('click', MenuMaker.deleteAllTables)
             // s.deleteMenuButton.addEventListener('click', MenuMaker.deleteMenu)
             // s.deleteArchiveButton.addEventListener('click', MenuMaker.deleteArchive)
             // s.deleteAllButton.addEventListener('click', MenuMaker.deleteEverything)
-
             s.buildID.addEventListener('keydown', MenuMaker.checkKeypress, true)
             s.buildTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
             s.buildAdd.addEventListener('click', MenuMaker.createNewMenuDish)
@@ -114,13 +115,12 @@ document.addEventListener('DOMContentLoaded', function() {
             tableItems.forEach(item => { item.addEventListener('mousedown', MenuMaker.clickElement) })
             let tableGroupHandles = document.querySelectorAll('.table-group-handle')
             tableGroupHandles.forEach(handle => { handle.addEventListener('mousedown', MenuMaker.clickElement) })
-
             let menuDishes = document.querySelectorAll('.menu-dish')
             menuDishes.forEach(dish => { dish.addEventListener('mousedown', MenuMaker.clickElement) })
             // let menuGroupHandles
 
-            // let dishArchiveButtons = s.menu.querySelectorAll('.dish-archive-button')
-            // dishArchiveButtons.forEach(button => { button.addEventListener('click', MenuMaker.moveDishToArchive) })
+            let dishArchiveButtons = s.menu.querySelectorAll('.dish-archive-button')
+            dishArchiveButtons.forEach(button => { button.addEventListener('click', MenuMaker.archiveDish) })
         },
 
         // Checks localStorage for site data, if not found sets default values
@@ -183,13 +183,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (dishBox) {
                     for (let y = 0; y < groupDishes.length; y++) {
                         let dish = groupDishes[y]
-                        let newItem = createElement.menuDishHTML(dish.id, dish.title, dish.items)
-                        dishBox.innerHTML += newItem
+                        let newDish = createElement.menuDishHTML(dish.id, dish.title, dish.items)
+                        dishBox.innerHTML += newDish
                     }
                 } else {
                     console.error("ERROR: " + className + " MENU GROUP NOT FOUND")
                     return
                 }
+            }
+            // Update archive
+            for (let x = 0; x < s.session.archive.length; x++) {
+                let dish = s.session.archive[x]
+                let newDish = createElement.menuDishHTML(dish.id, dish.title, dish.items)
+                s.menuArchive.innerHTML += newDish
             }
         },
 
@@ -334,7 +340,9 @@ document.addEventListener('DOMContentLoaded', function() {
             s.editModeActive = s.editModeButton.classList.contains('active')
             // If edit mode was turned off, update session
             if (!s.editModeActive) {
-                MenuMaker.cacheActiveTables()
+                MenuMaker.cacheTables()
+                MenuMaker.cacheMenu()
+                MenuMaker.cacheArchive()
                 MenuMaker.updateLocalStorage()
             }
             // Call functions to toggle contentEditable for divs
@@ -450,6 +458,12 @@ document.addEventListener('DOMContentLoaded', function() {
         openMenu: function() {
             console.log(">> openMenu")
             s.menu.classList.toggle('hidden')
+        },
+
+        // Toggle archive visibility
+        openArchive: function() {
+            console.log(">> openArchive")
+            s.menuArchive.classList.toggle('hidden')
         },
 
         // Increments color theme setting, updates session
@@ -614,8 +628,8 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         // Updates session with the current table names, group names, and group items
-        cacheActiveTables: function() {
-            console.log(">> cacheActiveTables")
+        cacheTables: function() {
+            console.log(">> cacheTables")
             let newTables = JSON.parse(JSON.stringify(DEFAULT_SESSION.tables))
             for (let x = 0; x < 10; x++) {
                 newTables[x].name = s.tableTitles[x].innerText
@@ -672,8 +686,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     newMenu.push(newGroupObject)
                 }
             }
-            //console.warn("NEW MENU", newMenu)
             s.session.menu = newMenu
+        },
+
+        //
+        cacheArchive: function() {
+            console.log(">> cacheArchive")
+            let newArchive = []
+            let archiveDishes = s.menuArchive.querySelectorAll('.menu-dish')
+            for (let x = 0; x < archiveDishes.length; x++) {
+                let dish = {
+                    "id": archiveDishes[x].querySelector('.dish-id').innerText,
+                    "title": archiveDishes[x].querySelector('.dish-title').innerText,
+                    "items": archiveDishes[x].querySelector('.dish-items').innerText,
+                }
+                newArchive.push(dish)
+            }
+            s.session.archive = newArchive
         },
 
         // Update localStorage object
@@ -706,7 +735,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!s.dragged) {
                 s.dragged = true
                 if (s.dragItem.classList.contains('table-item') || s.dragItem.classList.contains('table-group')) {
-                    MenuMaker.toggleItemDeleteOverlay()
+                    MenuMaker.toggleItemDeleteOverlay(true)
                 }
                 MenuMaker.grabElement(event)
             }
@@ -734,7 +763,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     else if (s.dropBox.classList.contains('table-items') || s.dropBox.classList.contains('table-group') ||
                             s.dropBox.classList.contains('menu-group') || s.dropBox.classList.contains('menu-body') || s.dropBox.classList.contains('menu-archive')) {
                         let tableDropPos = MenuMaker.getTableDropPos(event.clientY)
-                        MenuMaker.insertChildAtIndex(tableDropPos)
+                        MenuMaker.insertChildAtIndex(s.dragItem, s.dropBox, tableDropPos)
                     }
                 }
                 // Reset delete item overlay styles, unhide element
@@ -754,6 +783,7 @@ document.addEventListener('DOMContentLoaded', function() {
             clone.classList.add('drag-clone')
             document.body.append(clone)
             s.dragClone = document.querySelector('.drag-clone')
+            s.dragClone.style.width = s.dragItem.offsetWidth + 'px'
 
             let pos = s.dragItem.getBoundingClientRect()
             s.startPos = {
@@ -767,30 +797,38 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         dropElement: function(event) {
             console.log(">> dropElement")
+            if (!s.dragItem) {
+                console.error("ERROR DRAGITEM IS NULL")
+                return
+            }
             if (s.dragged) {
-                if (s.dragItem.classList.contains('table-item') || s.dragItem.classList.contains('table-group')) {
-                    if (s.dropBox.classList.contains('item-delete-overlay')) {
-                        s.dragItem.remove()
+                if (s.dropBox) {
+                    if (s.dragItem.classList.contains('table-item') || s.dragItem.classList.contains('table-group')) {
+                        if (s.dropBox.classList.contains('item-delete-overlay')) {
+                            s.dragItem.remove()
+                        } else {
+                            let tableItems = s.dropBox.closest('.table-items')
+                            let activeItems = tableItems.querySelectorAll('.table-item.selected')
+                            if (activeItems.length > 1) {
+                                activeItems.forEach(item => { item.classList.remove('selected') })
+                            }
+                        }
+                        MenuMaker.cacheTables()
+                    } else if (s.dragItem.classList.contains('menu-dish') ||s.dragItem.classList.contains('menu-group')) {
+                        MenuMaker.cacheMenu()
+                        MenuMaker.cacheArchive()
                     }
-                    let tableItems = s.dropBox.closest('.table-items')
-                    let activeItems = tableItems.querySelectorAll('.table-item.selected')
-                    if (activeItems.length > 1) {
-                        activeItems.forEach(item => { item.classList.remove('selected') })
-                    }
-                    MenuMaker.toggleItemDeleteOverlay()
-                    MenuMaker.cacheActiveTables()
-                } else if (s.dragItem.classList.contains('menu-dish') ||s.dragItem.classList.contains('menu-group')) {
-                    MenuMaker.cacheMenu()
-                }
+                } else { console.warn("DROPBOX IS NULL") }
                 s.dragged = false
                 s.dragItem.classList.remove('drag-item')
                 s.dragClone.remove()
                 s.dragItem = null
                 s.dragClone = null
                 s.dropBox = null
+                MenuMaker.toggleItemDeleteOverlay(false)
                 MenuMaker.updateBuildBox()
                 MenuMaker.updateLocalStorage()
-            } else {
+            } else if (s.dragItem.classList.contains('table-item')) {
                 MenuMaker.selectTableItem(event)
             }
             document.removeEventListener('mousemove', MenuMaker.dragElement)
@@ -853,24 +891,38 @@ document.addEventListener('DOMContentLoaded', function() {
         },
 
         //
-        insertChildAtIndex: function(index) {
+        insertChildAtIndex: function(child, parent, index) {
             console.log(">> insertChildAtIndex")
-            if (index > s.dropBox.children.length) {
-                s.dropBox.appendChild(s.dragItem)
+            if (index > parent.children.length) {
+                parent.appendChild(child)
             } else {
-                s.dropBox.insertBefore(s.dragItem, s.dropBox.children[index])
+                parent.insertBefore(child, parent.children[index])
             }
         },
 
         //
-        toggleItemDeleteOverlay: function() {
-            s.itemDeleteOverlay.classList.toggle('hidden')
+        toggleItemDeleteOverlay: function(turnOn) {
+            if (turnOn) {
+                s.itemDeleteOverlay.classList.remove('hidden')
+            } else {
+                s.itemDeleteOverlay.classList.add('hidden')
+            }
         },
 
         // Converts group name to HTML class name standards
         groupNameToClassName: function(groupName) {
             let className = groupName.toLowerCase()
             return className.replace(' ', '-')
+        },
+
+        //
+        archiveDish: function(event) {
+            console.log(">> moveToArchive")
+            let dish = event.target.closest('.menu-dish')
+            MenuMaker.insertChildAtIndex(dish, s.menuArchive, 0)
+            MenuMaker.cacheMenu()
+            MenuMaker.cacheArchive()
+            MenuMaker.updateLocalStorage()
         },
 
 

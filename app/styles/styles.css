@@ -128,7 +128,7 @@ body {
     flex-flow: column nowrap;
     justify-content: center;
     position: absolute;
-    height: 33rem;
+    height: 36rem;
     width: 21rem;
     top: 3rem;
     right: 0;
@@ -516,7 +516,7 @@ body {
 .menu {
     display: flex;
     flex-flow: row nowrap;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
     position: absolute;
     height: calc(100% - 3.5rem);
@@ -539,6 +539,17 @@ body {
     display: none;
 }
 
+.menu-archive-button {
+    position: fixed;
+    height: 8rem;
+    width: 3rem;
+    left: 0;
+    top: calc(50% - 6rem);
+    border-radius: 0 0.5rem 0.5rem 0;
+    background-color: #ffffff20;
+    cursor: pointer;
+}
+
 .menu-body,
 .menu-archive {
     display: flex;
@@ -546,7 +557,7 @@ body {
     height: calc(100% - 8rem);
     min-width: 30rem;
     max-width: 70rem;
-    margin: 4rem;
+    margin: 4rem 1rem;
     padding: 2rem;
     border: 0.25rem solid var(--background1);
     border-radius: 0.25rem;
@@ -561,6 +572,10 @@ body {
     padding: 0;
     flex-grow: 0;
     border: 0;
+}
+
+.menu-archive.hidden * {
+    display: none;
 }
 
 .menu-group {
@@ -752,6 +767,7 @@ body {
     cursor: crosshair;
     z-index: 100;
     margin-top: 0;
+    border: 0.15rem solid white;
 }
 .drag-clone * {
     cursor: crosshair;
@@ -759,6 +775,7 @@ body {
 
 .drag-item {
     opacity: 50%;
+    border: 0.15rem solid white;
 }
 
 
