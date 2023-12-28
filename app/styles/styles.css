@@ -584,22 +584,46 @@ body {
     width: 100%;
 }
 
-.menu-group-name {
+.menu-group-tag {
     height: 3rem;
-    line-height: 3rem;
-    font-size: 1.5rem;
-    font-weight: bold;
     margin-top: 2rem;
 }
 
-.menu-group-name::after {
+.menu-group-tag::after {
     content: "";
     display: block;
     position: relative;
+    top: 3rem;
     height: 0.2rem;
     border-radius: 0.2rem;
     background-color: var(--text1);
     opacity: 60%;
+}
+
+.menu-group-name {
+    float: left;
+    line-height: 3rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.menu-group-handle {
+    float: right;
+    height: 3rem;
+    width: 2rem;
+    margin: 0 0.5rem;
+    cursor: pointer;
+}
+
+.menu-group-handle svg {
+    height: 3rem;
+    width: 2rem;
+    fill: var(--background1);
+    transition: fill 50ms linear;
+}
+
+.menu-group-handle svg:hover {
+    fill: red;
 }
 
 .menu-dish {

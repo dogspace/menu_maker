@@ -117,8 +117,8 @@ document.addEventListener('DOMContentLoaded', function() {
             tableGroupHandles.forEach(handle => { handle.addEventListener('mousedown', MenuMaker.clickElement) })
             let menuDishes = document.querySelectorAll('.menu-dish')
             menuDishes.forEach(dish => { dish.addEventListener('mousedown', MenuMaker.clickElement) })
-            // let menuGroupHandles
-
+            let menuGroupHandles = document.querySelectorAll('.menu-group-handle')
+            menuGroupHandles.forEach(handle => { handle.addEventListener('mousedown', MenuMaker.clickElement) })
             let dishArchiveButtons = s.menu.querySelectorAll('.dish-archive-button')
             dishArchiveButtons.forEach(button => { button.addEventListener('click', MenuMaker.archiveDish) })
         },
@@ -172,30 +172,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
-            // Update menu
-            for (let x = 0; x < s.session.menu.length; x++) {
-                let groupName = s.session.menu[x].name
-                let className = MenuMaker.groupNameToClassName(groupName)
-                let groupDishes = s.session.menu[x].dishes
-                let newGroup = createElement.menuGroupHTML(groupName, className)
-                s.menuBody.innerHTML += newGroup
-                let dishBox = s.menuBody.querySelector('.menu-group.' + className)
-                if (dishBox) {
-                    for (let y = 0; y < groupDishes.length; y++) {
-                        let dish = groupDishes[y]
-                        let newDish = createElement.menuDishHTML(dish.id, dish.title, dish.items)
-                        dishBox.innerHTML += newDish
+            // Update menu and archive
+            fillDishBox(s.session.menu, s.menuBody)
+            fillDishBox(s.session.archive, s.menuArchive)
+            function fillDishBox(dishes, dishBox) {
+                for (let x = 0; x < dishes.length; x++) {
+                    let groupName = dishes[x].name
+                    let className = MenuMaker.groupNameToClassName(groupName)
+                    let groupDishes = dishes[x].dishes
+                    dishBox.innerHTML += createElement.menuGroupHTML(groupName, className)
+                    let newGroup = dishBox.querySelector('.menu-group.' + className)
+                    if (newGroup) {
+                        for (let y = 0; y < groupDishes.length; y++) {
+                            let dish = groupDishes[y]
+                            let newDish = createElement.menuDishHTML(dish.id, dish.title, dish.items)
+                            newGroup.innerHTML += newDish
+                        }
+                    } else {
+                        console.error("ERROR: " + className + " MENU GROUP NOT FOUND")
+                        return
                     }
-                } else {
-                    console.error("ERROR: " + className + " MENU GROUP NOT FOUND")
-                    return
                 }
-            }
-            // Update archive
-            for (let x = 0; x < s.session.archive.length; x++) {
-                let dish = s.session.archive[x]
-                let newDish = createElement.menuDishHTML(dish.id, dish.title, dish.items)
-                s.menuArchive.innerHTML += newDish
             }
         },
 
@@ -243,10 +240,14 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> createNewMenuDish")
             let id = s.buildID.value
             let title = s.buildTitle.value
-            let ingredients = s.buildItems.innerText
-            // Ingredients and description are required, id is optional
-            if (title.trim() != '' && ingredients.trim() != '') {
-                let newItem = createElement.menuDishHTML(id, title, ingredients)
+            let items = s.buildItems.innerText
+            if (items.trim() != '') {
+                // If title is empty, use the selected ingredients as the title
+                if (title == '') {
+                    title = items
+                    items = ''
+                }
+                let newItem = createElement.menuDishHTML(id, title, items)
                 let menuGroup = s.menuBody.querySelector('.menu-group.ungrouped')
                 menuGroup.insertAdjacentHTML('afterbegin', newItem)
                 MenuMaker.deselectAllItems()
@@ -342,7 +343,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!s.editModeActive) {
                 MenuMaker.cacheTables()
                 MenuMaker.cacheMenu()
-                MenuMaker.cacheArchive()
                 MenuMaker.updateLocalStorage()
             }
             // Call functions to toggle contentEditable for divs
@@ -627,7 +627,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return str.split('').reverse().join('')
         },
 
-        // Updates session with the current table names, group names, and group items
+        // Updates session with the current table data
         cacheTables: function() {
             console.log(">> cacheTables")
             let newTables = JSON.parse(JSON.stringify(DEFAULT_SESSION.tables))
@@ -657,52 +657,40 @@ document.addEventListener('DOMContentLoaded', function() {
             s.session.tables = newTables
         },
 
-        // Updates session with the current menu group names and dishes
+        // Updates session with the current menu and archive data
         cacheMenu: function() {
             console.log(">> cacheMenu")
-            let newMenu = JSON.parse(JSON.stringify(DEFAULT_SESSION.menu))
-            let menuGroups = s.menu.querySelectorAll('.menu-group')
-            for (let x = 0; x < menuGroups.length; x++) {
-                let groupTag = menuGroups[x].querySelector('.menu-group-name')
-                let groupName = groupTag ? groupTag.innerText : 'ungrouped'
-                let groupDishes = menuGroups[x].querySelectorAll('.menu-dish')
-                let dishContents = []
-                for (let y = 0; y < groupDishes.length; y++) {
-                    let dish = {
-                        "id": groupDishes[y].querySelector('.dish-id').innerText,
-                        "title": groupDishes[y].querySelector('.dish-title').innerText,
-                        "items": groupDishes[y].querySelector('.dish-items').innerText,
+            s.session.menu = (cacheDishes(s.menuBody))
+            s.session.archive = (cacheDishes(s.menuArchive))
+            function cacheDishes(dishBox) {
+                let newMenu = JSON.parse(JSON.stringify(DEFAULT_SESSION.menu))
+                let menuGroups = dishBox.querySelectorAll('.menu-group')
+                for (let x = 0; x < menuGroups.length; x++) {
+                    let groupTag = menuGroups[x].querySelector('.menu-group-name')
+                    let groupName = groupTag ? groupTag.innerText : 'ungrouped'
+                    let groupDishes = menuGroups[x].querySelectorAll('.menu-dish')
+                    let dishContents = []
+                    for (let y = 0; y < groupDishes.length; y++) {
+                        let dish = {
+                            "id": groupDishes[y].querySelector('.dish-id').innerText,
+                            "title": groupDishes[y].querySelector('.dish-title').innerText,
+                            "items": groupDishes[y].querySelector('.dish-items').innerText,
+                        }
+                        dishContents.push(dish)
                     }
-                    dishContents.push(dish)
-                }
-                // If ungrouped, push to existing group object in default session, else create new
-                if (groupName == 'ungrouped') {
-                    newMenu[0].dishes = dishContents
-                } else {
-                    let newGroupObject = {
-                        "name": groupName,
-                        "dishes": dishContents
+                    // If ungrouped, push to existing group object in default session, else create new
+                    if (groupName == 'ungrouped') {
+                        newMenu[0].dishes = dishContents
+                    } else {
+                        let newGroupObject = {
+                            "name": groupName,
+                            "dishes": dishContents
+                        }
+                        newMenu.push(newGroupObject)
                     }
-                    newMenu.push(newGroupObject)
                 }
+                return newMenu
             }
-            s.session.menu = newMenu
-        },
-
-        //
-        cacheArchive: function() {
-            console.log(">> cacheArchive")
-            let newArchive = []
-            let archiveDishes = s.menuArchive.querySelectorAll('.menu-dish')
-            for (let x = 0; x < archiveDishes.length; x++) {
-                let dish = {
-                    "id": archiveDishes[x].querySelector('.dish-id').innerText,
-                    "title": archiveDishes[x].querySelector('.dish-title').innerText,
-                    "items": archiveDishes[x].querySelector('.dish-items').innerText,
-                }
-                newArchive.push(dish)
-            }
-            s.session.archive = newArchive
         },
 
         // Update localStorage object
@@ -816,7 +804,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         MenuMaker.cacheTables()
                     } else if (s.dragItem.classList.contains('menu-dish') ||s.dragItem.classList.contains('menu-group')) {
                         MenuMaker.cacheMenu()
-                        MenuMaker.cacheArchive()
                     }
                 } else { console.warn("DROPBOX IS NULL") }
                 s.dragged = false
@@ -840,34 +827,24 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> getDropBox")
             let dropBox = null
             if (s.dragItem.classList.contains('table-item')) {
-                if (!dropBox) { dropBox = hoverElement.closest('.table-group') }
-                if (!dropBox) {
-                    let table = hoverElement.closest('.table')
-                    if (table) { dropBox = table.querySelector('.table-group.ungrouped') }
+                dropBox = hoverElement.closest('.table-group') || hoverElement.closest('.table') || hoverElement.closest('.item-delete-overlay')
+                if (dropBox.classList.contains('table')) {
+                    dropBox = dropBox.querySelector('.table-group.ungrouped')
                 }
-                if (!dropBox) { dropBox = hoverElement.closest('.item-delete-overlay') }
             } else if (s.dragItem.classList.contains('table-group')) {
-                if (!dropBox) {
-                    let table = hoverElement.closest('.table')
-                    if (table) { dropBox = table.querySelector('.table-items') }
+                dropBox = hoverElement.closest('.table') || hoverElement.closest('.item-delete-overlay')
+                if (dropBox.classList.contains('table')) {
+                    dropBox = dropBox.querySelector('.table-items')
                 }
-                if (!dropBox) { dropBox = hoverElement.closest('.item-delete-overlay') }
             } else if (s.dragItem.classList.contains('menu-dish')) {
-                if (!dropBox) { dropBox = hoverElement.closest('.menu-group') }
-                if (!dropBox) {
-                    let menu = hoverElement.closest('.menu-body')
-                    if (menu) { dropBox = menu.querySelector('.menu-group.ungrouped') }
+                dropBox = hoverElement.closest('.menu-group') || hoverElement.closest('.menu-body') || hoverElement.closest('.menu-archive')
+                if (dropBox.classList.contains('menu-body') || dropBox.classList.contains('menu-archive')) {
+                    dropBox = dropBox.querySelector('.menu-group.ungrouped')
                 }
-                if (!dropBox) { dropBox = hoverElement.closest('.menu-archive') }
             } else if (s.dragItem.classList.contains('menu-group')) {
-                if (!dropBox) {
-                    let menu = hoverElement.closest('.menu-body')
-                    if (menu) { dropBox = menu }
-                }
-                if (!dropBox) { dropBox = hoverElement.closest('.menu-archive') }
-            } else {
-                console.error("ERROR GETDROPBOX NOT FOUND")
+                dropBox = hoverElement.closest('.menu-body') || hoverElement.closest('.menu-archive')
             }
+            if (!dropBox) { console.error("ERROR GETDROPBOX NOT FOUND") }
             return dropBox
         },
 
@@ -884,7 +861,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             // Cursor is above the highest element
-            if (s.dropBox.classList.contains('table-items')) {
+            if (s.dropBox.classList.contains('table-items') ||
+                s.dropBox.classList.contains('menu-body') ||
+                s.dropBox.classList.contains('menu-archive')) {
                 return 1
             }
             return 0
@@ -912,17 +891,19 @@ document.addEventListener('DOMContentLoaded', function() {
         // Converts group name to HTML class name standards
         groupNameToClassName: function(groupName) {
             let className = groupName.toLowerCase()
-            return className.replace(' ', '-')
+            return className.replaceAll(' ', '-')
         },
 
         //
         archiveDish: function(event) {
             console.log(">> moveToArchive")
             let dish = event.target.closest('.menu-dish')
-            MenuMaker.insertChildAtIndex(dish, s.menuArchive, 0)
-            MenuMaker.cacheMenu()
-            MenuMaker.cacheArchive()
-            MenuMaker.updateLocalStorage()
+            if (s.menuBody.contains(dish)) {
+                let ungrouped = s.menuArchive.querySelector('.menu-group.ungrouped')
+                MenuMaker.insertChildAtIndex(dish, ungrouped, 0)
+                MenuMaker.cacheMenu()
+                MenuMaker.updateLocalStorage()
+            }
         },
 
 

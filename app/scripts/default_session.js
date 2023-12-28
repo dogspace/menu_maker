@@ -40,6 +40,9 @@ const DEFAULT_SESSION = {
         // {"name": "", "dishes": [{"id": "", "title": "", "items": ""}]}
     ],
     "archive": [
+        {   "name": "ungrouped",
+            "dishes": []
+        }
         // {"id": "", "title": "", "items": ""},
     ],
     "settings": {
@@ -101,7 +104,12 @@ const DEFAULT_SESSION_TESTING = {
         }
     ],
     "archive": [
-        {"id": "A1", "title": "Archive1", "items": "Item1, item2, item3"},
+        {   "name": "ungrouped",
+            "dishes": [{"id": "A1", "title": "Archive1", "items": "Item1, item2, item3"}]
+        },
+        {   "name": "Archived Group 1",
+            "dishes": [{"id": "A2", "title": "Kangaroo", "items": "Item1, item2, item3"}]
+        }
     ],
     "settings": {
         "color_theme": 0,
