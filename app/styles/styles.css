@@ -424,6 +424,7 @@ body {
 }
 
 .table-group-tag {
+    position: relative;
     height: 2.5rem;
     width: 19.5rem;
     padding-top: 0.5rem;
@@ -433,9 +434,11 @@ body {
 
 .table-group-name {
     float: left;
+    width: calc(100% - 2rem);
     line-height: 2rem;
     font-size: 1.2rem;
-    color: var(--text1)
+    color: var(--text1);
+    cursor: pointer;
 }
 
 .table-group-handle {
@@ -602,9 +605,11 @@ body {
 
 .menu-group-name {
     float: left;
+    width: calc(100% - 3rem);
     line-height: 3rem;
     font-size: 1.5rem;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .menu-group-handle {
@@ -827,9 +832,29 @@ body {
 }
 
 
+.group-actions {
+    position: absolute;
+    top: 2rem;
+    right: 0.25rem;
+    background-color: black;
+    border: 0.15rem solid var(--popupBorder);
+    border-radius: 0.25rem;
+}
 
+.group-actions.hidden {
+    display: none;
+}
 
-
+.group-actions div {
+    height: 2rem;
+    width: 10rem;
+    line-height: 2rem;
+    margin: 0.5rem 0.5rem;
+    border: 0.15rem solid var(--popupBorder);
+    border-radius: 0.25rem;
+    background-color: var(--popupRowBackground);
+    color: var(--text1);
+}
 
 
 
