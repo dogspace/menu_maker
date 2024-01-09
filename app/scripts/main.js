@@ -48,9 +48,10 @@ document.addEventListener('DOMContentLoaded', function() {
             'tableInputs': document.querySelectorAll('.table-input'),
             'tableOrder': ['_0', '_1', '_2', '_3', '_4', '_5', '_6', '_7', '_8', '_9'],
             // Menu
-            'menu': document.querySelector('.menu'),
-            'menuArchiveButton': document.querySelector('.menu-archive-button'),
-            'menuArchive': document.querySelector('.menu-archive'),
+            'menu': document.querySelector('.menu-container'),
+            'archive': document.querySelector('.archive'),
+            'archiveButton': document.querySelector('.archive-button'),
+            'archiveBody': document.querySelector('.archive-body'),
             'menuBody': document.querySelector('.menu-body'),
             //'menuGroups': document.querySelectorAll('.menu-group'),
             'menuButton': document.querySelector('.menu-button'),
@@ -88,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
         bindStaticUIActions: function() {
             console.log(">> bindStaticUIActions <<")
             s.menuButton.addEventListener('click', MenuMaker.openMenu)
-            s.menuArchiveButton.addEventListener('click', MenuMaker.openArchive)
+            s.archiveButton.addEventListener('click', MenuMaker.openArchive)
             s.editModeButton.addEventListener('click', MenuMaker.toggleEditMode)
             s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
             s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
@@ -113,16 +114,14 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> bindDynamicUIActions <<")
             let tableItems = document.querySelectorAll('.table-item')
             tableItems.forEach(item => { item.addEventListener('mousedown', MenuMaker.clickElement) })
-            let tableGroupNames = document.querySelectorAll('.table-group-name')
-            tableGroupNames.forEach(name => { name.addEventListener('mousedown', MenuMaker.clickElement) })
-            // let tableGroupHandles = document.querySelectorAll('.table-group-handle')
-            // tableGroupHandles.forEach(handle => { handle.addEventListener('click', console.log("yo")) })
             let menuDishes = document.querySelectorAll('.menu-dish')
             menuDishes.forEach(dish => { dish.addEventListener('mousedown', MenuMaker.clickElement) })
-            let menuGroupNames = document.querySelectorAll('.menu-group-name')
-            menuGroupNames.forEach(name => { name.addEventListener('mousedown', MenuMaker.clickElement) })
-            // let menuGroupHandles = document.querySelectorAll('.menu-group-handle')
-            // menuGroupHandles.forEach(handle => { handle.addEventListener('click', console.log("yo")) })
+            let groupNames = document.querySelectorAll('.group-name')
+            groupNames.forEach(name => { name.addEventListener('mousedown', MenuMaker.clickElement) })
+            let groupButtons = document.querySelectorAll('.group-control-button')
+            groupButtons.forEach(button => { button.addEventListener('click', function(e) {
+                MenuMaker.toggleGroupMenu(e.target.closest('.group-tag'))
+            }) })
             let dishArchiveButtons = s.menu.querySelectorAll('.dish-archive-button')
             dishArchiveButtons.forEach(button => { button.addEventListener('click', MenuMaker.archiveDish) })
         },
@@ -178,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             // Update menu and archive
             fillDishBox(s.session.menu, s.menuBody)
-            fillDishBox(s.session.archive, s.menuArchive)
+            fillDishBox(s.session.archive, s.archiveBody)
             function fillDishBox(dishes, dishBox) {
                 for (let x = 0; x < dishes.length; x++) {
                     let groupName = dishes[x].name
@@ -265,6 +264,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Flash menu button color to indicate the dish was added
                 s.menuButton.style.backgroundColor = 'white'
                 setTimeout(() => { s.menuButton.style.backgroundColor = '#ff6262' }, 400)
+            }
+        },
+
+        // Toggle group controls menu open/closed
+        toggleGroupMenu: function(groupTag) {
+            console.log(">> toggleGroupMenu")
+            let button = groupTag.querySelector('.group-control-button')
+            let menu = groupTag.querySelector('.group-controls')
+            button.classList.toggle('active')
+            menu.classList.toggle('hidden')
+            if (menu.classList.contains('hidden')) {
+                document.removeEventListener('click', MenuMaker.checkGroupMenuClick, true)
+            } else {
+                document.addEventListener('click', MenuMaker.checkGroupMenuClick, true)
+            }
+        },
+
+        // Runs while any group menu is open, toggles off is user clicks outside of open group menu
+        checkGroupMenuClick: function(event) {
+            console.log(">> checkGroupMenuClick")
+            let openGroupMenu = document.querySelector('.group-controls:not(.hidden)')
+            let groupTag = openGroupMenu.parentElement
+            let groupButton = groupTag.querySelector('.group-control-button')
+            if (!openGroupMenu.contains(event.target) && !groupButton.contains(event.target)) {
+                MenuMaker.toggleGroupMenu(openGroupMenu.parentElement)
             }
         },
 
@@ -467,7 +491,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Toggle archive visibility
         openArchive: function() {
             console.log(">> openArchive")
-            s.menuArchive.classList.toggle('hidden')
+            s.archive.classList.toggle('hidden')
         },
 
         // Increments color theme setting, updates session
@@ -639,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 newTables[x].name = s.tableTitles[x].innerText
                 let tableGroups = s.tables[x].querySelectorAll('.table-group')
                 for (let y = 0; y < tableGroups.length; y++) {
-                    let groupTag = tableGroups[y].querySelector('.table-group-name') 
+                    let groupTag = tableGroups[y].querySelector('.group-name') 
                     let groupName = groupTag ? groupTag.innerText : 'ungrouped'
                     let groupItems = tableGroups[y].querySelectorAll('.item-content')
                     let itemContents = []
@@ -665,12 +689,12 @@ document.addEventListener('DOMContentLoaded', function() {
         cacheMenu: function() {
             console.log(">> cacheMenu")
             s.session.menu = (cacheDishes(s.menuBody))
-            s.session.archive = (cacheDishes(s.menuArchive))
+            s.session.archive = (cacheDishes(s.archiveBody))
             function cacheDishes(dishBox) {
                 let newMenu = JSON.parse(JSON.stringify(DEFAULT_SESSION.menu))
                 let menuGroups = dishBox.querySelectorAll('.menu-group')
                 for (let x = 0; x < menuGroups.length; x++) {
-                    let groupTag = menuGroups[x].querySelector('.menu-group-name')
+                    let groupTag = menuGroups[x].querySelector('.group-name')
                     let groupName = groupTag ? groupTag.innerText : 'ungrouped'
                     let groupDishes = menuGroups[x].querySelectorAll('.menu-dish')
                     let dishContents = []
@@ -753,7 +777,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         s.dragItem.style.display = 'none'
                     }
                     else if (s.dropBox.classList.contains('table-items') || s.dropBox.classList.contains('table-group') ||
-                            s.dropBox.classList.contains('menu-group') || s.dropBox.classList.contains('menu-body') || s.dropBox.classList.contains('menu-archive')) {
+                            s.dropBox.classList.contains('menu-group') || s.dropBox.classList.contains('menu-body') || s.dropBox.classList.contains('archive-body')) {
                         let tableDropPos = MenuMaker.getTableDropPos(event.clientY)
                         MenuMaker.insertChildAtIndex(s.dragItem, s.dropBox, tableDropPos)
                     }
@@ -832,21 +856,21 @@ document.addEventListener('DOMContentLoaded', function() {
             let dropBox = null
             if (s.dragItem.classList.contains('table-item')) {
                 dropBox = hoverElement.closest('.table-group') || hoverElement.closest('.table') || hoverElement.closest('.item-delete-overlay')
-                if (dropBox.classList.contains('table')) {
+                if (dropBox && dropBox.classList.contains('table')) {
                     dropBox = dropBox.querySelector('.table-group.ungrouped')
                 }
             } else if (s.dragItem.classList.contains('table-group')) {
                 dropBox = hoverElement.closest('.table') || hoverElement.closest('.item-delete-overlay')
-                if (dropBox.classList.contains('table')) {
+                if (dropBox && dropBox.classList.contains('table')) {
                     dropBox = dropBox.querySelector('.table-items')
                 }
             } else if (s.dragItem.classList.contains('menu-dish')) {
-                dropBox = hoverElement.closest('.menu-group') || hoverElement.closest('.menu-body') || hoverElement.closest('.menu-archive')
-                if (dropBox.classList.contains('menu-body') || dropBox.classList.contains('menu-archive')) {
+                dropBox = hoverElement.closest('.menu-group') || hoverElement.closest('.menu-body') || hoverElement.closest('.archive-body')
+                if (dropBox && dropBox.classList.contains('menu-body') || dropBox.classList.contains('archive-body')) {
                     dropBox = dropBox.querySelector('.menu-group.ungrouped')
                 }
             } else if (s.dragItem.classList.contains('menu-group')) {
-                dropBox = hoverElement.closest('.menu-body') || hoverElement.closest('.menu-archive')
+                dropBox = hoverElement.closest('.menu-body') || hoverElement.closest('.archive-body')
             }
             if (!dropBox) { console.error("ERROR GETDROPBOX NOT FOUND") }
             return dropBox
@@ -867,7 +891,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Cursor is above the highest element
             if (s.dropBox.classList.contains('table-items') ||
                 s.dropBox.classList.contains('menu-body') ||
-                s.dropBox.classList.contains('menu-archive')) {
+                s.dropBox.classList.contains('archive-body')) {
                 return 1
             }
             return 0
@@ -903,7 +927,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> moveToArchive")
             let dish = event.target.closest('.menu-dish')
             if (s.menuBody.contains(dish)) {
-                let ungrouped = s.menuArchive.querySelector('.menu-group.ungrouped')
+                let ungrouped = s.archiveBody.querySelector('.menu-group.ungrouped')
                 MenuMaker.insertChildAtIndex(dish, ungrouped, 0)
                 MenuMaker.cacheMenu()
                 MenuMaker.updateLocalStorage()

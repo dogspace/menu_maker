@@ -10,6 +10,7 @@
     --popupBackground: #000000;
     --popupRowBackground: #FFFFFF1A;
     --popupBorder:#FFFFFF33;
+    --groupBorder: red;
     --text1: #FFFFFF;
     --text1-50: #FFFFFF7F;
     --text2: #000000;
@@ -295,6 +296,73 @@ body {
 }
 
 
+.group-tag {
+    position: relative;
+    width: 100%;
+    /* border-radius: 0.2rem; */
+    border-bottom: 0.0625rem solid var(--groupBorder);
+}
+
+.group-name {
+    float: left;
+    height: 100%;
+    width: calc(100% - 2rem);
+    line-height: 100%;
+    color: var(--text1);
+    cursor: pointer;
+}
+
+.group-control-button {
+    float: right;
+    height: 100%;
+    width: 2rem;
+    line-height: 100%;
+    cursor: pointer;
+}
+
+.group-control-button svg {
+    height: 100%;
+    width: 2rem;
+    fill: var(--background1);
+    transition: fill 50ms linear;
+}
+
+.group-control-button.active svg,
+.group-control-button svg:hover {
+    fill: red;
+}
+
+.group-controls {
+    position: absolute;
+    top: 2rem;
+    right: 0.25rem;
+    background-color: black;
+    border: 0.15rem solid var(--popupBorder);
+    border-radius: 0.25rem;
+    z-index: 5;
+}
+
+.group-controls.hidden {
+    display: none;
+}
+
+.group-controls div {
+    height: 2rem;
+    line-height: 2rem;
+    margin: 0.5rem 0.5rem;
+    padding: 0 1rem;
+    border: 0.15rem solid var(--popupBorder);
+    border-radius: 0.25rem;
+    background-color: var(--popupRowBackground);
+    color: var(--text1);
+    cursor: pointer;
+}
+
+.group-controls div:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
 
 .tables {
     position: absolute;
@@ -423,40 +491,14 @@ body {
     width: 100%;
 }
 
-.table-group-tag {
-    position: relative;
-    height: 2.5rem;
-    width: 19.5rem;
-    padding-top: 0.5rem;
-    border-radius: 0.2rem;
-    border-bottom: 0.0625rem solid red;
+.table-group .group-tag {
+    height: 2rem;
+    margin-top: 0.5rem;
 }
 
-.table-group-name {
-    float: left;
-    width: calc(100% - 2rem);
+.table-group .group-name {
     line-height: 2rem;
     font-size: 1.2rem;
-    color: var(--text1);
-    cursor: pointer;
-}
-
-.table-group-handle {
-    float: right;
-    height: 2rem;
-    width: 2rem;
-    cursor: pointer;
-}
-
-.table-group-handle svg {
-    height: 2rem;
-    width: 2rem;
-    fill: var(--background1);
-    transition: fill 50ms linear;
-}
-
-.table-group-handle svg:hover {
-    fill: red;
 }
 
 .table-group:not(.ungrouped) .table-item {
@@ -516,7 +558,7 @@ body {
 
 
 /* MENU */
-.menu {
+.menu-container {
     display: flex;
     flex-flow: row nowrap;
     align-items: flex-end;
@@ -534,15 +576,15 @@ body {
     color: var(--text1);
 }
 
-.menu.hidden {
+.menu-container.hidden {
     height: 0;
 }
 
-.menu.hidden * {
+.menu-container.hidden * {
     display: none;
 }
 
-.menu-archive-button {
+.archive-button {
     position: fixed;
     height: 8rem;
     width: 3rem;
@@ -553,22 +595,22 @@ body {
     cursor: pointer;
 }
 
-.menu-body,
-.menu-archive {
+.menu,
+.archive {
     display: flex;
     flex-flow: column nowrap;
-    height: calc(100% - 8rem);
+    height: calc(100% - 4rem);
     min-width: 30rem;
     max-width: 70rem;
-    margin: 4rem 1rem;
-    padding: 2rem;
-    border: 0.25rem solid var(--background1);
-    border-radius: 0.25rem;
+    margin: 2rem 1rem;
+    padding: 0.5rem;
+    border: 0.125rem solid var(--background1);
+    border-radius: 0.125rem;
     flex-grow: 1;
     transition: 0.2s;
 }
 
-.menu-archive.hidden {
+.archive.hidden {
     min-width: 0;
     width: 0;
     margin: 0;
@@ -577,8 +619,67 @@ body {
     border: 0;
 }
 
-.menu-archive.hidden * {
+.archive.hidden * {
     display: none;
+}
+
+.menu-header,
+.archive-header {
+    height: 3rem;
+    width: 100%;
+    /* border-radius: 0.25rem; */
+    border-bottom: 0.25rem solid var(--popupBorder);
+}
+
+.menu-title,
+.archive-title {
+    float: left;
+    height: 3rem;
+    width: calc(100% - 3rem);
+    line-height: 3rem;
+    font-size: 1.5rem;
+    padding: 0 1rem;
+    font-weight: bold;
+}
+
+.menu-control-button,
+.archive-pin-button {
+    float: right;
+    height: 3rem;
+    width: 3rem;
+    cursor: pointer;
+}
+
+.menu-control-button svg,
+.archive-pin-button svg {
+    height: 3rem;
+    width: 3rem;
+    padding: 0 0.5rem;
+    fill: var(--background1);
+}
+
+.menu-control-button.active svg,
+.archive-pin-button.active svg,
+.menu-control-button:hover svg,
+.archive-pin-button:hover svg {
+    fill: red;
+}
+
+.menu-controls {
+    height: 10rem;
+    width: 15rem;
+    border: 1px solid red;
+}
+
+.menu-controls.hidden {
+    display: none;
+}
+
+.menu-body,
+.archive-body {
+    height: calc(100% - 3rem);
+    width: 100%;
+    padding: 1rem;
 }
 
 .menu-group {
@@ -587,48 +688,15 @@ body {
     width: 100%;
 }
 
-.menu-group-tag {
+.menu-group .group-tag {
     height: 3rem;
     margin-top: 2rem;
 }
 
-.menu-group-tag::after {
-    content: "";
-    display: block;
-    position: relative;
-    top: 3rem;
-    height: 0.2rem;
-    border-radius: 0.2rem;
-    background-color: var(--text1);
-    opacity: 60%;
-}
-
-.menu-group-name {
-    float: left;
-    width: calc(100% - 3rem);
+.menu-group .group-name {
     line-height: 3rem;
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-size: 1.25rem;
     cursor: pointer;
-}
-
-.menu-group-handle {
-    float: right;
-    height: 3rem;
-    width: 2rem;
-    margin: 0 0.5rem;
-    cursor: pointer;
-}
-
-.menu-group-handle svg {
-    height: 3rem;
-    width: 2rem;
-    fill: var(--background1);
-    transition: fill 50ms linear;
-}
-
-.menu-group-handle svg:hover {
-    fill: red;
 }
 
 .menu-dish {
@@ -662,7 +730,7 @@ body {
     float: right;
     height: 2rem;
     width: calc(100% - 4rem);
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     line-height: 2rem;
     overflow-y: auto;
 }
@@ -832,29 +900,8 @@ body {
 }
 
 
-.group-actions {
-    position: absolute;
-    top: 2rem;
-    right: 0.25rem;
-    background-color: black;
-    border: 0.15rem solid var(--popupBorder);
-    border-radius: 0.25rem;
-}
 
-.group-actions.hidden {
-    display: none;
-}
 
-.group-actions div {
-    height: 2rem;
-    width: 10rem;
-    line-height: 2rem;
-    margin: 0.5rem 0.5rem;
-    border: 0.15rem solid var(--popupBorder);
-    border-radius: 0.25rem;
-    background-color: var(--popupRowBackground);
-    color: var(--text1);
-}
 
 
 
