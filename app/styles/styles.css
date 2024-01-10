@@ -625,6 +625,7 @@ body {
 
 .menu-header,
 .archive-header {
+    position: relative;
     height: 3rem;
     width: 100%;
     /* border-radius: 0.25rem; */
@@ -642,37 +643,23 @@ body {
     font-weight: bold;
 }
 
-.menu-control-button,
-.archive-pin-button {
+.create-menu-group {
     float: right;
     height: 3rem;
     width: 3rem;
     cursor: pointer;
 }
 
-.menu-control-button svg,
-.archive-pin-button svg {
+.create-menu-group svg {
     height: 3rem;
     width: 3rem;
     padding: 0 0.5rem;
     fill: var(--background1);
 }
 
-.menu-control-button.active svg,
-.archive-pin-button.active svg,
-.menu-control-button:hover svg,
-.archive-pin-button:hover svg {
+.create-menu-group.active svg,
+.create-menu-group:hover svg {
     fill: red;
-}
-
-.menu-controls {
-    height: 10rem;
-    width: 15rem;
-    border: 1px solid red;
-}
-
-.menu-controls.hidden {
-    display: none;
 }
 
 .menu-body,

@@ -48,12 +48,14 @@ document.addEventListener('DOMContentLoaded', function() {
             'tableInputs': document.querySelectorAll('.table-input'),
             'tableOrder': ['_0', '_1', '_2', '_3', '_4', '_5', '_6', '_7', '_8', '_9'],
             // Menu
-            'menu': document.querySelector('.menu-container'),
+            'menuContainer': document.querySelector('.menu-container'),
             'archive': document.querySelector('.archive'),
             'archiveButton': document.querySelector('.archive-button'),
+            'archiveHeader': document.querySelector('.archive-header'),
+            'menuHeader': document.querySelector('.menu-header'),
             'archiveBody': document.querySelector('.archive-body'),
             'menuBody': document.querySelector('.menu-body'),
-            //'menuGroups': document.querySelectorAll('.menu-group'),
+            'createMenuGroupButtons': document.querySelectorAll('.create-menu-group'),
             'menuButton': document.querySelector('.menu-button'),
             //
             'popupContainer': document.querySelector('.popup-container'),
@@ -107,6 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
             s.buildDeselect.addEventListener('click', MenuMaker.deselectAllItems)
             s.tableInputs.forEach(input => { input.addEventListener('keydown', MenuMaker.checkKeypress, true) })
             s.createTableGroupButtons.forEach(button => { button.addEventListener('click', MenuMaker.createNewTableGroup) })
+            s.createMenuGroupButtons.forEach(button => { button.addEventListener('click', MenuMaker.createNewMenuGroup) })
         },
 
         // Bind dynamic UI actions (called at init and after creating a new table/menu item)
@@ -119,11 +122,11 @@ document.addEventListener('DOMContentLoaded', function() {
             let groupNames = document.querySelectorAll('.group-name')
             groupNames.forEach(name => { name.addEventListener('mousedown', MenuMaker.clickElement) })
             let groupButtons = document.querySelectorAll('.group-control-button')
-            groupButtons.forEach(button => { button.addEventListener('click', function(e) {
-                MenuMaker.toggleGroupMenu(e.target.closest('.group-tag'))
-            }) })
-            let dishArchiveButtons = s.menu.querySelectorAll('.dish-archive-button')
+            groupButtons.forEach(button => { button.addEventListener('click', MenuMaker.toggleGroupMenu) })
+            let dishArchiveButtons = s.menuContainer.querySelectorAll('.dish-archive-button')
             dishArchiveButtons.forEach(button => { button.addEventListener('click', MenuMaker.archiveDish) })
+            let deleteGroupButtons = document.querySelectorAll('.group-delete')
+            deleteGroupButtons.forEach(button => { button.addEventListener('click', MenuMaker.deleteGroup) })
         },
 
         // Checks localStorage for site data, if not found sets default values
@@ -238,6 +241,26 @@ document.addEventListener('DOMContentLoaded', function() {
             MenuMaker.updateLocalStorage()
         },
 
+        // Creates a new group in the menu or archive
+        createNewMenuGroup: function(event) {
+            console.log(">> createNewMenuGroup")
+            let isMenu = s.menuHeader.contains(event.target)
+            let menuBody = isMenu ? s.menuBody : s.archiveBody
+            menuBody.innerHTML += createElement.menuGroupHTML('New group', 'new-group')
+            // Update session
+            let newGroupObject = {
+                "name": "New group",
+                "dishes": []
+            }
+            if (isMenu) {
+                s.session.menu.push(newGroupObject)
+            } else {
+                s.session.archive.push(newGroupObject)
+            }
+            MenuMaker.updateLocalStorage()
+            MenuMaker.bindDynamicUIActions()
+        },
+
         // Adds dish to menu, updates session
         createNewMenuDish: function() {
             console.log(">> createNewMenuDish")
@@ -267,9 +290,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
+        // Deletes group and its items
+        deleteGroup: function(event) {
+            console.log(">> deleteGroup")
+            document.removeEventListener('click', MenuMaker.checkGroupMenuClick, true)
+            let group = event.target.closest('.menu-group') || event.target.closest('.table-group')
+            let isMenu = group.classList.contains('menu-group')
+            group.remove()
+            if (isMenu) {
+                MenuMaker.cacheMenu()
+            } else {
+                MenuMaker.cacheTables()
+                MenuMaker.updateBuildBox()
+            }
+            MenuMaker.updateLocalStorage()
+            MenuMaker.bindDynamicUIActions()
+        },
+
         // Toggle group controls menu open/closed
-        toggleGroupMenu: function(groupTag) {
+        toggleGroupMenu: function(event) {
             console.log(">> toggleGroupMenu")
+            let e = event.target ? event.target : event
+            let groupTag = e.closest('.group-tag')
             let button = groupTag.querySelector('.group-control-button')
             let menu = groupTag.querySelector('.group-controls')
             button.classList.toggle('active')
@@ -288,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let groupTag = openGroupMenu.parentElement
             let groupButton = groupTag.querySelector('.group-control-button')
             if (!openGroupMenu.contains(event.target) && !groupButton.contains(event.target)) {
-                MenuMaker.toggleGroupMenu(openGroupMenu.parentElement)
+                MenuMaker.toggleGroupMenu(groupTag)
             }
         },
 
@@ -381,38 +423,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Toggle edit mode for tables
         toggleTableEditMode: function() {
             s.tables.forEach(table => {
-                let tableTitle = table.querySelector('.table-title')
-                let tableGroups = table.querySelectorAll('.table-group')
-                let tableItems = table.querySelectorAll('.item-content')
+                let editable = table.querySelectorAll('.table-title, .group-name, .item-content')
                 if (s.editModeActive) {
-                    tableTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
-                    tableTitle.style.cursor = 'text'
-                    tableTitle.contentEditable = true
-                    tableGroups.forEach(group => {
-                        if (group.classList.contains('ungrouped')) { return }
-                        group.addEventListener('keydown', MenuMaker.checkKeypress, true)
-                        group.style.cursor = 'text'
-                        group.contentEditable = true
-                    })
-                    tableItems.forEach(item => {
-                        item.addEventListener('keydown', MenuMaker.checkKeypress, true)
-                        item.style.cursor = 'text'
-                        item.contentEditable = true
+                    editable.forEach(element => {
+                        element.addEventListener('keydown', MenuMaker.checkKeypress, true)
+                        element.style.cursor = 'text'
+                        element.contentEditable = true
                     })
                 } else {
-                    tableTitle.removeEventListener('keydown', MenuMaker.checkKeypress, true)
-                    tableTitle.style.cursor = 'default'
-                    tableTitle.contentEditable = false
-                    tableGroups.forEach(group => {
-                        if (group.classList.contains('ungrouped')) { return }
-                        group.removeEventListener('keydown', MenuMaker.checkKeypress, true)
-                        group.style.cursor = 'pointer'
-                        group.contentEditable = false
-                    })
-                    tableItems.forEach(item => {
-                        item.removeEventListener('keydown', MenuMaker.checkKeypress, true)
-                        item.style.cursor = 'pointer'
-                        item.contentEditable = false
+                    editable.forEach(element => {
+                        element.removeEventListener('keydown', MenuMaker.checkKeypress, true)
+                        element.style.cursor = 'pointer'
+                        element.contentEditable = false
                     })
                 }
             })
@@ -420,31 +442,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Toggle edit mode for menu
         toggleMenuEditMode: function() {
-            let dishList = s.menuBody.querySelectorAll('.menu-dish')
-            dishList.forEach(dish => {
-                let dishID = dish.querySelector('.dish-id')
-                let dishTitle = dish.querySelector('.dish-title')
-                let dishItems = dish.querySelector('.dish-items')
+            let menuGroups = s.menuContainer.querySelectorAll('.menu-group')
+            menuGroups.forEach(group => {
+                let editable = group.querySelectorAll('.group-name, .dish-id, .dish-title, .dish-items')
                 if (s.editModeActive) {
-                    dishID.addEventListener('keydown', MenuMaker.checkKeypress, true)
-                    dishTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
-                    dishItems.addEventListener('keydown', MenuMaker.checkKeypress, true)
-                    dishID.style.cursor = 'text'
-                    dishTitle.style.cursor = 'text'
-                    dishItems.style.cursor = 'text'
-                    dishID.contentEditable = true
-                    dishTitle.contentEditable = true
-                    dishItems.contentEditable = true
+                    editable.forEach(element => {
+                        element.addEventListener('keydown', MenuMaker.checkKeypress, true)
+                        element.style.cursor = 'text'
+                        element.contentEditable = true
+                    })
                 } else {
-                    dishID.removeEventListener('keydown', MenuMaker.checkKeypress, true)
-                    dishTitle.removeEventListener('keydown', MenuMaker.checkKeypress, true)
-                    dishItems.removeEventListener('keydown', MenuMaker.checkKeypress, true)
-                    dishID.style.cursor = 'pointer'
-                    dishTitle.style.cursor = 'pointer'
-                    dishItems.style.cursor = 'pointer'
-                    dishID.contentEditable = false
-                    dishTitle.contentEditable = false
-                    dishItems.contentEditable = false
+                    editable.forEach(element => {
+                        element.removeEventListener('keydown', MenuMaker.checkKeypress, true)
+                        element.style.cursor = 'pointer'
+                        element.contentEditable = false
+                    })
                 }
             })
         },
@@ -485,7 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Toggle menu visibility
         openMenu: function() {
             console.log(">> openMenu")
-            s.menu.classList.toggle('hidden')
+            s.menuContainer.classList.toggle('hidden')
         },
 
         // Toggle archive visibility
