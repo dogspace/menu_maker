@@ -19,8 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
             'settingsMenu': document.querySelector('.settings-menu'),
             'colorThemeButton': document.querySelector('.color-theme'),
             'colorThemeSpan': document.querySelector('.color-theme span'),
-            'numberMenuButton': document.querySelector('.number-menu'),
-            'numberMenuSpan': document.querySelector('.number-menu span'),
             'dishSpawnLocButton': document.querySelector('.dish-spawn-loc'),
             'dishSpawnLocSpan': document.querySelector('.dish-spawn-loc span'),
             'importDataButton': document.querySelector('.import-data'),
@@ -28,7 +26,6 @@ document.addEventListener('DOMContentLoaded', function() {
             'deleteTablesButton': document.querySelector('.delete-tables'),
             'deleteMenuButton': document.querySelector('.delete-menu'),
             'deleteArchiveButton': document.querySelector('.delete-archive'),
-            'deleteAllButton': document.querySelector('.delete-all'),
             'colorOrder': ['DARK', 'LIGHT', 'GREY', 'SEPIA'],
             // Dish builder and delete overlay
             'controls': document.querySelector('.controls'),
@@ -97,12 +94,10 @@ document.addEventListener('DOMContentLoaded', function() {
             s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
             s.importDataButton.addEventListener('click', MenuMaker.importData)
             s.exportDataButton.addEventListener('click', MenuMaker.exportData)
-            // s.numberMenuButton.addEventListener('click', MenuMaker.toggleMenuNumbers)
             // s.dishSpawnLocButton.addEventListener('click', MenuMaker.setDishSpawn)
             // s.deleteTablesButton.addEventListener('click', MenuMaker.deleteAllTables)
             // s.deleteMenuButton.addEventListener('click', MenuMaker.deleteMenu)
             // s.deleteArchiveButton.addEventListener('click', MenuMaker.deleteArchive)
-            // s.deleteAllButton.addEventListener('click', MenuMaker.deleteEverything)
             s.buildID.addEventListener('keydown', MenuMaker.checkKeypress, true)
             s.buildTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
             s.buildAdd.addEventListener('click', MenuMaker.createNewMenuDish)
