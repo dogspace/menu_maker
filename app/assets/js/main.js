@@ -1,6 +1,6 @@
 
-import { DEFAULT_SESSION, DEFAULT_SESSION_TESTING } from "/app/scripts/default_session.js"
-import * as createElement from '/app/scripts/create_element.js'
+import { DEFAULT_SESSION, DEFAULT_SESSION_TESTING } from "/app/assets/js/default_session.js"
+import * as createElement from '/app/assets/js/create_element.js'
 
 
 
