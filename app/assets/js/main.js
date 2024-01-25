@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'settingsMenu': document.querySelector('.settings-menu'),
             'colorThemeButton': document.querySelector('.color-theme'),
             'colorThemeSpan': document.querySelector('.color-theme span'),
+            'menuLayoutButton': document.querySelector('.menu-layout'),
+            'menuLayoutSpan': document.querySelector('.menu-layout-span'),
             'dishSpawnLocButton': document.querySelector('.dish-spawn-loc'),
             'dishSpawnLocSpan': document.querySelector('.dish-spawn-loc span'),
             'importDataButton': document.querySelector('.import-data'),
@@ -82,6 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
             MenuMaker.bindStaticUIActions()
             MenuMaker.bindDynamicUIActions()
             MenuMaker.setColorTheme()
+            MenuMaker.setMenuLayout()
         },
 
         // Bind Static UI actions (called at init)
@@ -92,9 +95,10 @@ document.addEventListener('DOMContentLoaded', function() {
             s.editModeButton.addEventListener('click', MenuMaker.toggleEditMode)
             s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
             s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
+            s.menuLayoutButton.addEventListener('click', MenuMaker.changeMenuLayout)
+            // s.dishSpawnLocButton.addEventListener('click', MenuMaker.setDishSpawn)
             s.importDataButton.addEventListener('click', MenuMaker.importData)
             s.exportDataButton.addEventListener('click', MenuMaker.exportData)
-            // s.dishSpawnLocButton.addEventListener('click', MenuMaker.setDishSpawn)
             // s.deleteTablesButton.addEventListener('click', MenuMaker.deleteAllTables)
             // s.deleteMenuButton.addEventListener('click', MenuMaker.deleteMenu)
             // s.deleteArchiveButton.addEventListener('click', MenuMaker.deleteArchive)
@@ -174,9 +178,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             // Update menu and archive
-            fillDishBox(s.session.menu, s.menuBody)
-            fillDishBox(s.session.archive, s.archiveBody)
-            function fillDishBox(dishes, dishBox) {
+            fillDishList(s.session.archive, s.archiveBody)
+            if (s.session.settings.menu_layout == 0) { fillDishList(s.session.menu, s.menuBody) }
+            else { fillDishGrid(s.session.menu) }
+
+            function fillDishList(dishes, dishBox) {
                 for (let x = 0; x < dishes.length; x++) {
                     let groupName = dishes[x].name
                     let className = MenuMaker.groupNameToClassName(groupName)
@@ -194,6 +200,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         return
                     }
                 }
+            }
+            function fillDishGrid(dishes) {
+                return
             }
         },
 
@@ -554,6 +563,27 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (theme == 'SEPIA') {
                 document.documentElement.style.setProperty('--background1', '#DBCBB7')
             }
+        },
+
+        //
+        changeMenuLayout: function() {
+            console.log(">> changeMenuLayout")
+            let newLayout = s.session.settings.menu_layout == 0 ? 1 : 0
+            s.session.settings.menu_layout = newLayout
+            MenuMaker.setMenuLayout()
+            MenuMaker.updateLocalStorage()
+        },
+
+        //
+        setMenuLayout: function() {
+            console.log(">> setMenuLayout")
+            let layout = ['LIST', 'GRID'][s.session.settings.menu_layout]
+            s.menuLayoutSpan.innerText = layout
+            // if (layout == 'LIST') {
+            //     s.menuBody.classList.replace('grid', 'list')
+            // } else if (layout == 'GRID') {
+            //     s.menuBody.classList.replace('list', 'grid')
+            // }
         },
 
         // Export data, converts session into a base64 encoded string for user to copy
