@@ -48,12 +48,16 @@ document.addEventListener('DOMContentLoaded', function() {
             'tableOrder': ['_0', '_1', '_2', '_3', '_4', '_5', '_6', '_7', '_8', '_9'],
             // Menu
             'menuContainer': document.querySelector('.menu-container'),
+            'menu': document.querySelector('.menu'),
             'archive': document.querySelector('.archive'),
             'archiveButton': document.querySelector('.archive-button'),
             'archiveHeader': document.querySelector('.archive-header'),
             'menuHeader': document.querySelector('.menu-header'),
             'archiveBody': document.querySelector('.archive-body'),
-            'menuBody': document.querySelector('.menu-body'),
+            'menuBody': document.querySelector('.menu-body:not(.hidden)'),
+            'menuBodyList': document.querySelector('.menu-body.list'),
+            'menuBodyGrid': document.querySelector('.menu-body.grid'),
+            'menuGridCells': document.querySelectorAll('.menu-body.grid .grid-cell'),
             'createMenuGroupButtons': document.querySelectorAll('.create-menu-group'),
             'menuButton': document.querySelector('.menu-button'),
             //
@@ -565,25 +569,47 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
-        //
+        // Changes menu layout, updates classes and session
         changeMenuLayout: function() {
             console.log(">> changeMenuLayout")
-            let newLayout = s.session.settings.menu_layout == 0 ? 1 : 0
-            s.session.settings.menu_layout = newLayout
+            MenuMaker.archiveMenu()
+            s.session.settings.menu_layout = (s.session.settings.menu_layout + 1) % 2
+            // Update session
+            // If grid, add empty dishes to ungrouped (replaced as dishes are dragged in)
+            // If list, remove all empty dishes from session
+            if (s.session.settings.menu_layout == 1) {
+                s.session.menu[0].dishes = [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},
+                    {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}]
+            } else {
+                let f = s.session.menu[0].dishes.filter(dish => dish == {})
+                s.session.menu[0].dishes = f
+            }
+            // LEFT OFF HERE...................................
+
+            // Updates HTML
+            s.menu.querySelector('.create-menu-group').classList.toggle('hidden')
+            s.menuBodyList.classList.toggle('hidden')
+            s.menuBodyGrid.classList.toggle('hidden')
+            s.menuBody = document.querySelector('.menu-body:not(.hidden)')
+            
             MenuMaker.setMenuLayout()
             MenuMaker.updateLocalStorage()
         },
 
-        //
+        // Sets menu related HTML based on session
         setMenuLayout: function() {
             console.log(">> setMenuLayout")
             let layout = ['LIST', 'GRID'][s.session.settings.menu_layout]
+            // Update button
             s.menuLayoutSpan.innerText = layout
-            // if (layout == 'LIST') {
-            //     s.menuBody.classList.replace('grid', 'list')
-            // } else if (layout == 'GRID') {
-            //     s.menuBody.classList.replace('list', 'grid')
-            // }
+            // Update visible menu and global var if necessary
+            if (layout == 'GRID' && s.menuBodyGrid.classList.contains('hidden')) {
+                s.menuBodyList.classList.add('hidden')
+                s.menuBodyGrid.classList.remove('hidden')
+                s.menuBody = document.querySelector('.menu-body:not(.hidden)')
+                s.menu.querySelector('.create-menu-group').classList.add('hidden')
+            }
+
         },
 
         // Export data, converts session into a base64 encoded string for user to copy
@@ -946,6 +972,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         //
         toggleItemDeleteOverlay: function(turnOn) {
+            console.log(">> toggleItemDeleteOverlay")
             if (turnOn) {
                 s.itemDeleteOverlay.classList.remove('hidden')
             } else {
@@ -959,9 +986,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return className.replaceAll(' ', '-')
         },
 
-        //
+        // Archives single dish, called from archive button
         archiveDish: function(event) {
-            console.log(">> moveToArchive")
+            console.log(">> archiveDish")
             let dish = event.target.closest('.menu-dish')
             if (s.menuBody.contains(dish)) {
                 let ungrouped = s.archiveBody.querySelector('.menu-group.ungrouped')
@@ -969,6 +996,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 MenuMaker.cacheMenu()
                 MenuMaker.updateLocalStorage()
             }
+        },
+
+        // Moves menu dishes and groups to the archive
+        archiveMenu: function() {
+            console.log(">> archiveMenu")
+            let groups = s.menuBody.querySelectorAll('.menu-group')
+            groups.forEach(group => {
+                if (group.classList.contains('ungrouped') && group.hasChildNodes()) {
+                    let ungrouped = s.archiveBody.querySelector('.menu-group.ungrouped')
+                    let dishes = group.querySelectorAll('.menu-dish')
+                    dishes.forEach(dish => { MenuMaker.insertChildAtIndex(dish, ungrouped, 0) })
+                } else {
+                    s.archiveBody.appendChild(group)
+                }
+            })
+            MenuMaker.cacheMenu()
+            MenuMaker.updateLocalStorage()
+        },
+
+        //
+        firstEmptyGridCell: function() {
+            console.log(">> firstEmptyGridCell")
+            s.menuGridCells.forEach(cell => {
+                if (cell.innerHTML.trim.length == 0) { return cell }
+            })
+            return 0
         },
 
 

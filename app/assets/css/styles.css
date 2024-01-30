@@ -650,6 +650,10 @@ body {
     cursor: pointer;
 }
 
+.create-menu-group.hidden {
+    display: none;
+}
+
 .create-menu-group svg {
     height: 3rem;
     width: 3rem;
@@ -678,47 +682,51 @@ body {
 }
 
 .menu-group {
+    width: 100%;
     display: flex;
     flex-flow: column nowrap;
-    overflow: hidden;
 }
 
-.menu-group {
-    width: 100%;
+.menu-body.list,
+.archive-body {
+    .group-tag {
+        height: 3rem;
+        margin-top: 1rem;
+    }
+
+    .group-name {
+        line-height: 3rem;
+        font-size: 1.25rem;
+        cursor: pointer;
+    }
 }
 
-.menu-group .group-tag {
-    height: 3rem;
-    margin-top: 1rem;
+.menu-body.grid {
+    .grid-cell {
+        width: calc((100% - 3.5rem) / 7);
+        height: calc((100% - 3rem) / 6);
+        /* min-width: 15rem;
+        min-height: 15rem; */
+        margin: 0.25rem;
+        border: 1px solid white;
+        cursor: pointer;
+    }
+
+    .grid-cell:hover {
+        background-color: rgba(255, 255, 255, 0.329);
+    }
+
+    .group-tag {
+        height: 2rem;
+        margin-top: 0;
+    }
+
+    .group-name {
+        line-height: 2rem;
+        font-size: 1.25rem;
+        cursor: pointer;
+    }
 }
-
-.menu-group .group-name {
-    line-height: 3rem;
-    font-size: 1.25rem;
-    cursor: pointer;
-}
-
-/* .grid .menu-group {
-    width: calc((100% - 3.5rem) / 7);
-    height: calc((100% - 1.25rem) / 5);
-    min-width: 15rem;
-    min-height: 15rem;
-    margin: 0.25rem;
-    border: 1px solid white;
-}
-
-.grid .menu-group .group-tag {
-    height: 2rem;
-    margin-top: 0;
-}
-
-.grid .menu-group .group-name {
-    line-height: 2rem;
-    font-size: 1.25rem;
-    cursor: pointer;
-} */
-
-
 
 .menu-dish {
     position: relative;
