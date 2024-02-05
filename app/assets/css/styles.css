@@ -561,11 +561,11 @@ body {
 .menu-container {
     display: flex;
     flex-flow: row nowrap;
-    align-items: flex-end;
-    justify-content: center;
+    align-items: flex-start;
     position: absolute;
     height: calc(100% - 3.5rem);
     width: 100%;
+    min-width: 100%;
     bottom: 0;
     left: 0;
     z-index: 9;
@@ -587,7 +587,7 @@ body {
 .archive-button {
     position: fixed;
     height: 8rem;
-    width: 3rem;
+    width: 2rem;
     left: 0;
     top: calc(50% - 6rem);
     border-radius: 0 0.5rem 0.5rem 0;
@@ -595,19 +595,35 @@ body {
     cursor: pointer;
 }
 
+.spacer {
+    height: 100%;
+    width: 2rem;
+    min-width: 2rem;
+}
+
 .menu,
 .archive {
     display: flex;
     flex-flow: column nowrap;
-    height: calc(100% - 4rem);
-    min-width: 30rem;
-    max-width: 70rem;
-    margin: 2rem 1rem;
+    height: calc(100% - 2rem);
     padding: 0.5rem;
     border: 0.125rem solid var(--background1);
     border-radius: 0.125rem;
-    flex-grow: 1;
     transition: 0.2s;
+}
+
+.menu {
+    margin: 1rem auto;
+    min-width: 60rem;
+    max-width: min(100rem, calc(100% - 2rem));
+    flex-grow: 1;
+}
+
+.archive {
+    margin: 1rem 0 1rem 2rem;
+    min-width: 30rem;
+    max-width: 70rem;
+    flex-grow: 0.25;
 }
 
 .archive.hidden {
@@ -677,10 +693,6 @@ body {
     padding: 1rem;
 }
 
-.menu-body.hidden {
-    display: none;
-}
-
 .menu-group {
     width: 100%;
     display: flex;
@@ -702,11 +714,40 @@ body {
 }
 
 .menu-body.grid {
+    display: flex;
+    flex-flow: column nowrap;
+
+    .grid-selected {
+        border: 0.2rem solid rgb(255, 255, 255);
+        height: 5rem;
+        width: 100%;
+        margin-bottom: 1rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .grid-selected.hidden {
+        height: 0;
+        border: none;
+    }
+
+    .grid-cells {
+        display: flex;
+        flex-flow: row wrap;
+        justify-content: flex-start;
+        align-content: flex-start;
+        height: 100%;
+        min-height: calc(100% - 5rem);
+        max-height: 100%;
+        width: 100%;
+        overflow-y: auto;
+    }
+
     .grid-cell {
         width: calc((100% - 3.5rem) / 7);
         height: calc((100% - 3rem) / 6);
-        /* min-width: 15rem;
-        min-height: 15rem; */
+        min-height: 8rem;
         margin: 0.25rem;
         border: 1px solid white;
         cursor: pointer;
@@ -726,6 +767,12 @@ body {
         font-size: 1.25rem;
         cursor: pointer;
     }
+}
+
+.menu-body.hidden {
+    display: none;
+
+    * { display: none;}
 }
 
 .menu-dish {
