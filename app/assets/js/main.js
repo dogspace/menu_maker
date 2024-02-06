@@ -73,7 +73,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'dragClone': null,
             'dropBox': null,
             'dragged': false,
-            'startPos': {},
+            'itemStart': {'x': 0, 'y': 0},
+            'cursorStart': {'x': 0, 'y': 0},
             'lastHover': '',
             'isHidden': false,
         },
@@ -185,8 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update menu and archive
             fillDishList(s.session.archive, s.archiveBody)
             if (s.session.settings.menu_layout == 0) { fillDishList(s.session.menu, s.menuBody) }
-            else { fillDishGrid(s.session.menu[0]) }
-
+            else                                     { fillDishGrid(s.session.menu[0].dishes) }
             function fillDishList(dishes, dishBox) {
                 for (let x = 0; x < dishes.length; x++) {
                     let groupName = dishes[x].name
@@ -208,11 +208,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
-            // LEFT OFF HERE UNFINISHED UNFINISHED
             function fillDishGrid(dishes) {
                 for (let x = 0; x < dishes.length; x++) {
                     let dish = dishes[x]
-                    if (dish != {}) {
+                    if (Object.keys(dish).length > 0) {
                         let newDish = createElement.menuDishHTML(dish.id, dish.title, dish.items)
                         s.menuGridCells[x].innerHTML = newDish
                     }
@@ -608,17 +607,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // Sets menu related HTML based on session
         setMenuLayout: function() {
             console.log(">> setMenuLayout")
+            // Update archive visibility
+            let isHidden = s.archive.classList.contains('hidden')
+            if (isHidden && s.session.settings.pin_archive == 0) {
+                s.archive.classList.remove('hidden')
+            } else if (!isHidden && s.session.settings.pin_archive == 1) {
+                s.archive.classList.add('hidden')
+            }
+            // Update button, visible menu, and global var if necessary
             let layout = ['LIST', 'GRID'][s.session.settings.menu_layout]
-            // Update button
             s.menuLayoutSpan.innerText = layout
-            // Update visible menu and global var if necessary
             if (layout == 'GRID' && s.menuBodyGrid.classList.contains('hidden')) {
                 s.menuBodyList.classList.add('hidden')
                 s.menuBodyGrid.classList.remove('hidden')
                 s.menuBody = document.querySelector('.menu-body:not(.hidden)')
                 s.menu.querySelector('.create-menu-group').classList.add('hidden')
             }
-
         },
 
         // Export data, converts session into a base64 encoded string for user to copy
@@ -801,8 +805,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}]
                 for (let x = 0; x < s.menuGridCells.length; x++) {
                     let cell = s.menuGridCells[x]
-                    if (cell.hasChildNodes()) {
-                        let child = cell.firstChild
+                    let child = cell.firstElementChild
+                    if (child) {
                         dishes[x].id = child.querySelector('.dish-id').innerText
                         dishes[x].title = child.querySelector('.dish-title').innerText
                         dishes[x].items = child.querySelector('.dish-items').innerText
@@ -834,9 +838,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!s.dragItem) { s.dragItem = target.closest('.menu-dish') }
             if (!s.dragItem) { s.dragItem = target.closest('.menu-group') }
             // Prevent dragging of menu groups while in grid layout
-            if (s.session.settings.menu_layout == 1 && s.dragItem.classList.contains('menu-group')) {
-                return
-            }
+            // if (s.session.settings.menu_layout == 1 && s.dragItem.classList.contains('menu-group')) {
+            //     return
+            // }
+            // Save cursor start position and attach drag & drop events
+            s.cursorStart.x = event.clientX
+            s.cursorStart.y = event.clientY
             document.addEventListener('mouseup', MenuMaker.dropElement)
             document.addEventListener('mousemove', MenuMaker.dragElement)
         },
@@ -845,14 +852,19 @@ document.addEventListener('DOMContentLoaded', function() {
         dragElement: function(event) {
             console.log(">> dragElement")
             if (!s.dragged) {
-                s.dragged = true
-                if (s.dragItem.classList.contains('table-item') || s.dragItem.classList.contains('table-group')) {
-                    MenuMaker.toggleItemDeleteOverlay(true)
+                // Begin dragging once cursor has moved 10 or move pixels from start position
+                let moveDistance = MenuMaker.pointerMoveDistance(s.cursorStart.x, s.cursorStart.y, event.clientX, event.clientY)
+                if (moveDistance < 10) { return }
+                else {
+                    s.dragged = true
+                    if (s.dragItem.classList.contains('table-item') || s.dragItem.classList.contains('table-group')) {
+                        MenuMaker.toggleItemDeleteOverlay(true)
+                    }
+                    MenuMaker.grabElement(event)
                 }
-                MenuMaker.grabElement(event)
             }
-            s.dragClone.style.left = (event.clientX - s.startPos.offsetX) + 'px' 
-            s.dragClone.style.top = (event.clientY - s.startPos.offsetY) + 'px'
+            s.dragClone.style.left = (event.clientX - s.itemStart.x) + 'px' 
+            s.dragClone.style.top = (event.clientY - s.itemStart.y) + 'px'
             // Detect when mouse enters a valid drop point, update DOM
             s.dragClone.style.visibility = 'hidden'
             let hoverElement = document.elementFromPoint(event.clientX, event.clientY)
@@ -866,7 +878,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 let draggingOverDelete = false
                 // Update DOM while dragging over valid drop locations
                 if (s.dropBox) {
-                    //console.log("DROP BOX: ", s.dropBox)
                     if (s.dropBox.classList.contains('item-delete-overlay')) {
                         s.isHidden = true
                         draggingOverDelete = true
@@ -900,12 +911,9 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.append(clone)
             s.dragClone = document.querySelector('.drag-clone')
             s.dragClone.style.width = s.dragItem.offsetWidth + 'px'
-
             let pos = s.dragItem.getBoundingClientRect()
-            s.startPos = {
-                'offsetX': event.clientX - pos.left,
-                'offsetY': event.clientY - pos.top
-            }
+            s.itemStart.x = event.clientX - pos.left
+            s.itemStart.y = event.clientY - pos.top
             s.dragClone.style.left = pos.left + 'px'
             s.dragClone.style.top = pos.top + 'px'
         },
@@ -966,15 +974,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else if (s.dragItem.classList.contains('menu-dish')) {
                 if (s.session.settings.menu_layout == 1) {
-                    dropBox = hoverElement.closest('.grid-cell')
+                    dropBox = hoverElement.closest('.grid-cell') || hoverElement.closest('.menu-group') || hoverElement.closest('.archive-body')
                 } else {
                     dropBox = hoverElement.closest('.menu-group') || hoverElement.closest('.menu-body') || hoverElement.closest('.archive-body')
-                    if (dropBox && (dropBox.classList.contains('menu-body') || dropBox.classList.contains('archive-body'))) {
-                        dropBox = dropBox.querySelector('.menu-group.ungrouped')
-                    }
+                }
+                if (dropBox && (dropBox.classList.contains('menu-body') || dropBox.classList.contains('archive-body'))) {
+                    dropBox = dropBox.querySelector('.menu-group.ungrouped')
                 }
             } else if (s.dragItem.classList.contains('menu-group')) {
-                dropBox = hoverElement.closest('.menu-body') || hoverElement.closest('.archive-body')
+                if (s.session.settings.menu_layout == 0) {
+                    dropBox = hoverElement.closest('.menu-body') || hoverElement.closest('.archive-body')
+                } else {
+                    dropBox = hoverElement.closest('.archive-body')
+                }
             }
             if (!dropBox) { console.warn("ERROR GETDROPBOX NOT FOUND") }
             return dropBox
@@ -992,8 +1004,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     return i + 1
                 }
             }
-            // Cursor is above the highest element
-            if (s.dropBox.classList.contains('table-items') ||
+            // Dragging item and cursor is above ungrouped, place at the top
+            if (s.dropBox.classList.contains('ungrouped')) {
+                return 0
+            }
+            // Dragging item and cursor is over group tag, or
+            // Dragging group and cursor is above the highest element
+            if (s.dropBox.classList.contains('menu-group') ||
+                s.dropBox.classList.contains('table-items') ||
                 s.dropBox.classList.contains('menu-body') ||
                 s.dropBox.classList.contains('archive-body')) {
                 return 1
@@ -1004,11 +1022,16 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         insertChildAtIndex: function(child, parent, index) {
             console.log(">> insertChildAtIndex")
-            if (index == 0 || index > parent.children.length) {
+            if (!parent.children.length) {
                 parent.appendChild(child)
             } else {
                 parent.insertBefore(child, parent.children[index])
             }
+        },
+
+        //
+        pointerMoveDistance: function(oldX, oldY, newX, newY) {
+            return Math.sqrt(Math.pow((oldX - newX), 2) + Math.pow((oldY - newY), 2))
         },
 
         //
