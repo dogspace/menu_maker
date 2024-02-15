@@ -570,7 +570,6 @@ body {
     left: 0;
     z-index: 9;
     background-color: var(--menuBackground);
-    opacity: 95%;
     transition: 0.2s;
     overflow: auto;
     color: var(--text1);
@@ -779,70 +778,141 @@ body {
     position: relative;
     min-height: 4rem;
     padding: 0.5rem;
-    margin-top: 1rem;
     border-radius: 0.25rem;
     cursor: pointer;
 }
 
 .menu-dish:hover {
-    background-color: rgba(255, 255, 255, 0.20);
+    background-color: rgba(255, 255, 255, 0.10);
 }
 
-.dish-info {
-    height: 2rem;
-    width: calc(100% - 4rem);
+/* Menu dish when not in grid cell */
+.menu-group {
+    .menu-dish {
+        margin-top: 1rem;
+    }
+
+    .dish-info {
+        height: 2rem;
+        width: calc(100% - 4rem);
+    }
+    
+    .dish-id {
+        float: left;
+        height: 2rem;
+        width: 3rem;
+        line-height: 2rem;
+        opacity: 60%;
+        overflow: hidden;
+    }
+    
+    .dish-title {
+        float: right;
+        height: 2rem;
+        width: calc(100% - 4rem);
+        font-size: 1.2rem;
+        line-height: 2rem;
+        overflow-y: auto;
+    }
+    
+    .dish-items {
+        min-height: 2rem;
+        max-height: 6rem;
+        width: calc(100% - 4rem);
+        padding-left: 4rem;
+        line-height: 2rem;
+        opacity: 80%;
+        overflow-y: auto;
+    }
+    
+    .dish-archive-button {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        bottom: 0.5rem;
+        width: 2rem;
+        cursor: auto;
+    }
+    
+    .dish-archive-button svg {
+        display: block;
+        height: 100%;
+        width: 2rem;
+        margin: auto;
+        fill: red;
+        cursor: pointer;
+        fill: var(--background1);
+        transition: fill 50ms linear;
+    }
+    
+    .dish-archive-button svg:hover {
+        fill: red;
+    }
 }
 
-.dish-id {
-    float: left;
-    height: 2rem;
-    width: 3rem;
-    line-height: 2rem;
-    opacity: 60%;
-    overflow: hidden;
-}
+/* Menu dish in grid cell */
+.grid-cell {
+    .menu-dish {
+        display: flex;
+        flex-flow: column nowrap;
+        height: 100%;
+        width: 100%;
+    }
 
-.dish-title {
-    float: right;
-    height: 2rem;
-    width: calc(100% - 4rem);
-    font-size: 1.2rem;
-    line-height: 2rem;
-    overflow-y: auto;
-}
-
-.dish-items {
-    min-height: 2rem;
-    max-height: 6rem;
-    width: calc(100% - 4rem);
-    padding-left: 4rem;
-    line-height: 2rem;
-    opacity: 80%;
-    overflow-y: auto;
-}
-
-.dish-archive-button {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    bottom: 0.5rem;
-    width: 2rem;
-    cursor: auto;
-}
-
-.dish-archive-button svg {
-    display: block;
-    height: 100%;
-    width: 2rem;
-    margin: auto;
-    fill: red;
-    cursor: pointer;
-    fill: var(--background1);
-    transition: fill 50ms linear;
-}
-
-.dish-archive-button svg:hover {
-    fill: red;
+    .dish-info {
+        flex-grow: 1;
+        height: 50%;
+        width: 100%;
+    }
+    
+    .dish-id {
+        height: 1.5rem;
+        width: 100%;
+        line-height: 1.5rem;
+        opacity: 60%;
+        overflow: hidden;
+    }
+    
+    .dish-title {
+        height: calc(100% - 1.5rem);
+        width: 100%;
+        font-size: 1.2rem;
+        line-height: 2rem;
+        overflow-y: auto;
+    }
+    
+    .dish-items {
+        flex-grow: 1;
+        height: 50%;
+        width: 100%;
+        line-height: 2rem;
+        opacity: 80%;
+        overflow-y: auto;
+    }
+    
+    .dish-archive-button {
+        position: absolute;
+        top: 0.2rem;
+        right: 0.2rem;
+        height: 1.5rem;
+        width: 1.5rem;
+        cursor: auto;
+    }
+    
+    .dish-archive-button svg {
+        display: block;
+        height: 1.5rem;
+        width: 1.5rem;
+        margin: auto;
+        fill: red;
+        cursor: pointer;
+        fill: var(--background1);
+        transition: fill 50ms linear;
+    }
+    
+    .dish-archive-button svg:hover {
+        fill: red;
+    }
 }
 
 

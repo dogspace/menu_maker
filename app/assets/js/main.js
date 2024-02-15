@@ -459,23 +459,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Toggle edit mode for menu
         toggleMenuEditMode: function() {
-            let menuGroups = s.menuContainer.querySelectorAll('.menu-group')
-            menuGroups.forEach(group => {
-                let editable = group.querySelectorAll('.group-name, .dish-id, .dish-title, .dish-items')
-                if (s.editModeActive) {
-                    editable.forEach(element => {
-                        element.addEventListener('keydown', MenuMaker.checkKeypress, true)
-                        element.style.cursor = 'text'
-                        element.contentEditable = true
-                    })
-                } else {
-                    editable.forEach(element => {
-                        element.removeEventListener('keydown', MenuMaker.checkKeypress, true)
-                        element.style.cursor = 'pointer'
-                        element.contentEditable = false
-                    })
-                }
-            })
+            let editable = s.menuContainer.querySelectorAll('.group-name, .dish-id, .dish-title, .dish-items')
+            if (s.editModeActive) {
+                editable.forEach(element => {
+                    element.addEventListener('keydown', MenuMaker.checkKeypress, true)
+                    element.style.cursor = 'text'
+                    element.contentEditable = true
+                })
+            } else {
+                editable.forEach(element => {
+                    element.removeEventListener('keydown', MenuMaker.checkKeypress, true)
+                    element.style.cursor = 'pointer'
+                    element.contentEditable = false
+                })
+            }
         },
 
         // Check keypresses while in edit mode
@@ -837,10 +834,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!s.dragItem) { s.dragItem = target.closest('.table-group') }
             if (!s.dragItem) { s.dragItem = target.closest('.menu-dish') }
             if (!s.dragItem) { s.dragItem = target.closest('.menu-group') }
-            // Prevent dragging of menu groups while in grid layout
-            // if (s.session.settings.menu_layout == 1 && s.dragItem.classList.contains('menu-group')) {
-            //     return
-            // }
             // Save cursor start position and attach drag & drop events
             s.cursorStart.x = event.clientX
             s.cursorStart.y = event.clientY
