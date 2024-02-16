@@ -605,7 +605,6 @@ body {
     display: flex;
     flex-flow: column nowrap;
     height: calc(100% - 2rem);
-    padding: 0.5rem;
     border: 0.125rem solid var(--background1);
     border-radius: 0.125rem;
     transition: 0.2s;
@@ -620,9 +619,9 @@ body {
 
 .archive {
     margin: 1rem 0 1rem 2rem;
+    width: 50rem;
     min-width: 30rem;
     max-width: 70rem;
-    flex-grow: 0.25;
 }
 
 .archive.hidden {
@@ -642,7 +641,8 @@ body {
 .archive-header {
     position: relative;
     height: 3rem;
-    width: 100%;
+    width: calc(100% - 1rem);
+    margin: 0.5rem;
     /* border-radius: 0.25rem; */
     border-bottom: 0.25rem solid var(--popupBorder);
 }
@@ -688,8 +688,7 @@ body {
     justify-content: flex-start;
     align-content: flex-start;
     height: calc(100% - 3rem);
-    width: 100%;
-    padding: 1rem;
+    width: calc(100% - 2rem);
 }
 
 .menu-group {
@@ -700,6 +699,9 @@ body {
 
 .menu-body.list,
 .archive-body {
+    padding-top: 1rem;
+    margin: 0 1rem 1rem 1rem;
+
     .group-tag {
         height: 3rem;
         margin-top: 1rem;
@@ -715,6 +717,7 @@ body {
 .menu-body.grid {
     display: flex;
     flex-flow: column nowrap;
+    margin: 1rem;
 
     .grid-selected {
         border: 0.2rem solid rgb(255, 255, 255);
@@ -758,7 +761,6 @@ body {
 
     .group-tag {
         height: 2rem;
-        margin-top: 0;
     }
 
     .group-name {
@@ -789,7 +791,7 @@ body {
 /* Menu dish when not in grid cell */
 .menu-group {
     .menu-dish {
-        margin-top: 1rem;
+        margin-top: 0.5rem;
     }
 
     .dish-info {
@@ -816,10 +818,12 @@ body {
     }
     
     .dish-items {
+        position: relative;
+        left: 4rem;
         min-height: 2rem;
         max-height: 6rem;
         width: calc(100% - 4rem);
-        padding-left: 4rem;
+        /* padding-left: 4rem; */
         line-height: 2rem;
         opacity: 80%;
         overflow-y: auto;
@@ -860,8 +864,8 @@ body {
     }
 
     .dish-info {
+        flex-basis: max-content;
         flex-grow: 1;
-        height: 50%;
         width: 100%;
     }
     
@@ -877,15 +881,15 @@ body {
         height: calc(100% - 1.5rem);
         width: 100%;
         font-size: 1.2rem;
-        line-height: 2rem;
+        line-height: 1.5rem;
         overflow-y: auto;
     }
     
     .dish-items {
+        flex-basis: auto;
         flex-grow: 1;
-        height: 50%;
         width: 100%;
-        line-height: 2rem;
+        line-height: 1.5rem;
         opacity: 80%;
         overflow-y: auto;
     }
