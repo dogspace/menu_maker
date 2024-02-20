@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', function() {
             'colorThemeSpan': document.querySelector('.color-theme span'),
             'menuLayoutButton': document.querySelector('.menu-layout'),
             'menuLayoutSpan': document.querySelector('.menu-layout-span'),
+            'gridDatesButton': document.querySelector('.grid-dates'),
+            'gridDatesSpan': document.querySelector('.grid-dates-span'),
+            'gridMonthButton': document.querySelector('.grid-month'),
+            'gridMonthSpan': document.querySelector('.grid-month-span'),
             'dishSpawnLocButton': document.querySelector('.dish-spawn-loc'),
             'dishSpawnLocSpan': document.querySelector('.dish-spawn-loc span'),
             'importDataButton': document.querySelector('.import-data'),
@@ -57,8 +61,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'menuBody': document.querySelector('.menu-body:not(.hidden)'),
             'menuBodyList': document.querySelector('.menu-body.list'),
             'menuBodyGrid': document.querySelector('.menu-body.grid'),
-            'menuGridSelected': document.querySelector('.menu-body.grid .grid-selected'),
             'menuGridCells': document.querySelectorAll('.menu-body.grid .grid-cell'),
+            'menuGridDays': document.querySelector('.menu-body.grid .grid-days'),
             'createMenuGroupButtons': document.querySelectorAll('.create-menu-group'),
             'menuButton': document.querySelector('.menu-button'),
             //
@@ -102,6 +106,8 @@ document.addEventListener('DOMContentLoaded', function() {
             s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
             s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
             s.menuLayoutButton.addEventListener('click', MenuMaker.changeMenuLayout)
+            s.gridDatesButton.addEventListener('click', MenuMaker.toggleGridDates)
+            s.gridMonthButton.addEventListener('click', MenuMaker.updateGridMonth)
             // s.dishSpawnLocButton.addEventListener('click', MenuMaker.setDishSpawn)
             s.importDataButton.addEventListener('click', MenuMaker.importData)
             s.exportDataButton.addEventListener('click', MenuMaker.exportData)
@@ -213,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     let dish = dishes[x]
                     if (Object.keys(dish).length > 0) {
                         let newDish = createElement.menuDishHTML(dish.id, dish.title, dish.items)
-                        s.menuGridCells[x].innerHTML = newDish
+                        s.menuGridCells[x].innerHTML += newDish
                     }
                 }
             }
@@ -1072,13 +1078,82 @@ document.addEventListener('DOMContentLoaded', function() {
             MenuMaker.updateLocalStorage()
         },
 
-        //
+        // UNFINISHED UNFINISHED CURRENTLY UNUSED - WILL BE USED TO FIX GRID SWAP BUG
         firstEmptyGridCell: function() {
             console.log(">> firstEmptyGridCell")
             s.menuGridCells.forEach(cell => {
                 if (cell.innerHTML.trim.length == 0) { return cell }
             })
             return 0
+        },
+
+        // Updates visibility of grid dates
+        toggleGridDates: function() {
+            console.log(">> toggleGridDates")
+            s.session.settings.grid_dates = (s.session.settings.grid_dates + 1) % 2
+            let values = ['HIDDEN', 'VISIBLE']
+            let status = values[s.session.settings.grid_dates]
+            s.gridDatesSpan.innerText = status
+            s.menuGridDays.classList.toggle('hidden')
+            MenuMaker.updateLocalStorage()
+            // Update cell numbers and dish height
+            let dishes = s.menuBodyGrid.querySelectorAll('.menu-dish')
+            if (status == 'VISIBLE') {
+                dishes.forEach(dish => dish.style.height = 'calc(100% - 1.5rem)' )
+                MenuMaker.fillGridDates()
+            } else {
+                dishes.forEach(dish => dish.style.height = '100%' )
+                s.menuGridCells.forEach(cell => {
+                    cell.childNodes.forEach(c => {
+                        if (c.nodeType === Node.TEXT_NODE) { c.remove() }
+                    })
+                })
+            }
+        },
+
+        // Updates grid month
+        updateGridMonth: function() {
+            console.log(">> updateGridMonth")
+            s.session.settings.grid_month = (s.session.settings.grid_month + 1) % 12
+            let values = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+                'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
+            let status = values[s.session.settings.grid_month]
+            s.gridMonthSpan.innerText = status
+            MenuMaker.updateLocalStorage()
+            MenuMaker.fillGridDates()
+        },
+
+        // Fills in numbers on calendar
+        fillGridDates: function() {
+            console.log(">> fillGridDates")
+            let date = new Date()
+            let month = s.session.settings.grid_month
+            let year = date.getFullYear()
+            let daysInMonth = MenuMaker.daysInMonth(month, year)
+            let firstDayOfMonth = (new Date(year, month)).getDay() - 1
+            let prevMonth = (month - 1) % 12
+            let prevYear = prevMonth == 12 ? year - 1 : year
+            let daysInPrevMonth = MenuMaker.daysInMonth(prevMonth, prevYear)
+            let prevMonthFirstVisible = daysInPrevMonth + 1 - firstDayOfMonth
+
+            for (let i = 0; i < s.menuGridCells.length; i++) {
+                let cell = s.menuGridCells[i]
+                if (i < firstDayOfMonth) {
+                    cell.innerText += i + prevMonthFirstVisible
+                    cell.style.color = 'grey'
+                } else if (i < firstDayOfMonth + daysInMonth) {
+                    cell.innerText += i - firstDayOfMonth + 1
+                    cell.style.color = 'white'
+                } else {
+                    cell.innerText += i - firstDayOfMonth - daysInMonth + 1
+                    cell.style.color = 'grey'
+                }
+            }
+        },
+
+        // Returns number of days in specified month
+        daysInMonth: function(month, year) {
+            return new Date(year, month, 0).getDate()
         },
 
 

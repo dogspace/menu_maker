@@ -48,6 +48,8 @@ const DEFAULT_SESSION = {
     "settings": {
         "color_theme": 0,
         "menu_layout": 0,
+        "grid_dates": 0,
+        "grid_month": 0,
         "pin_archive": 0,
         "dish_spawn": 0
     }
@@ -114,6 +116,8 @@ const DEFAULT_SESSION_TESTING = {
     "settings": {
         "color_theme": 0,
         "menu_layout": 0,
+        "grid_dates": 0,
+        "grid_month": 0,
         "pin_archive": 0,
         "dish_spawn": 0
     }

@@ -561,7 +561,8 @@ body {
 .menu-container {
     display: flex;
     flex-flow: row nowrap;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: center;
     position: absolute;
     height: calc(100% - 3.5rem);
     width: 100%;
@@ -594,12 +595,6 @@ body {
     cursor: pointer;
 }
 
-.spacer {
-    height: 100%;
-    width: 2rem;
-    min-width: 2rem;
-}
-
 .menu,
 .archive {
     display: flex;
@@ -611,14 +606,14 @@ body {
 }
 
 .menu {
-    margin: 1rem auto;
+    margin: 1rem 2rem 1rem 1rem;
     min-width: 60rem;
-    max-width: min(100rem, calc(100% - 2rem));
+    max-width: min(140rem, calc(100% - 2rem));
     flex-grow: 1;
 }
 
 .archive {
-    margin: 1rem 0 1rem 2rem;
+    margin: 1rem 1rem 1rem 2rem;
     width: 50rem;
     min-width: 30rem;
     max-width: 70rem;
@@ -719,28 +714,13 @@ body {
     flex-flow: column nowrap;
     margin: 1rem;
 
-    .grid-selected {
-        border: 0.2rem solid rgb(255, 255, 255);
-        height: 5rem;
-        width: 100%;
-        margin-bottom: 1rem;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-
-    .grid-selected.hidden {
-        height: 0;
-        border: none;
-    }
-
     .grid-cells {
         display: flex;
         flex-flow: row wrap;
         justify-content: flex-start;
         align-content: flex-start;
         height: 100%;
-        min-height: calc(100% - 5rem);
+        min-height: calc(100% - 8rem);
         max-height: 100%;
         width: 100%;
         overflow-y: auto;
@@ -751,12 +731,25 @@ body {
         height: calc((100% - 3rem) / 6);
         min-height: 8rem;
         margin: 0.25rem;
-        border: 1px solid white;
+        background-color: hsla(0, 0%, 100%, 0.07);
+        border-radius: 0.25rem;
         cursor: pointer;
     }
 
     .grid-cell:hover {
-        background-color: rgba(255, 255, 255, 0.329);
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .grid-days {
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: space-around;
+        height: 1.25rem;
+        width: 100%;
+    }
+
+    .grid-days.hidden {
+        display: none;
     }
 
     .group-tag {
@@ -910,7 +903,7 @@ body {
         margin: auto;
         fill: red;
         cursor: pointer;
-        fill: var(--background1);
+        fill: var(--popupBorder);
         transition: fill 50ms linear;
     }
     
