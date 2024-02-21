@@ -588,7 +588,7 @@ document.addEventListener('DOMContentLoaded', function() {
             s.session.settings.menu_layout = (s.session.settings.menu_layout + 1) % 2
             // Update session
             // If grid, add empty dishes to ungrouped (placeholders, replaced as dishes are dragged in)
-            // If list, remove all empty dishes from session
+            // If list, remove all empty dishes from session, reset grid month to current month
             if (s.session.settings.menu_layout == 1) {
                 s.session.menu[0].dishes = [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},
                     {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}]
@@ -596,13 +596,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 let f = s.session.menu[0].dishes.filter(dish => dish == {})
                 s.session.menu[0].dishes = f
             }
-
+            // Reset grid month to current month
+            s.session.settings.grid_month = new Date().getMonth()
+            let months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+                'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
+            s.gridMonthSpan.innerText = months[s.session.settings.grid_month]
             // Updates HTML
             s.menu.querySelector('.create-menu-group').classList.toggle('hidden')
             s.menuBodyList.classList.toggle('hidden')
             s.menuBodyGrid.classList.toggle('hidden')
             s.menuBody = document.querySelector('.menu-body:not(.hidden)')
-            
             MenuMaker.setMenuLayout()
             MenuMaker.updateLocalStorage()
         },
@@ -617,14 +620,20 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (!isHidden && s.session.settings.pin_archive == 1) {
                 s.archive.classList.add('hidden')
             }
-            // Update button, visible menu, and global var if necessary
+            // Update layout buttons and grid visibility
+            let months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+                'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
+            s.gridMonthSpan.innerText = months[s.session.settings.grid_month]
             let layout = ['LIST', 'GRID'][s.session.settings.menu_layout]
             s.menuLayoutSpan.innerText = layout
-            if (layout == 'GRID' && s.menuBodyGrid.classList.contains('hidden')) {
-                s.menuBodyList.classList.add('hidden')
-                s.menuBodyGrid.classList.remove('hidden')
-                s.menuBody = document.querySelector('.menu-body:not(.hidden)')
-                s.menu.querySelector('.create-menu-group').classList.add('hidden')
+            if (layout == 'GRID') {
+                if (s.menuBodyGrid.classList.contains('hidden')) {                
+                    s.menuBodyList.classList.add('hidden')
+                    s.menuBodyGrid.classList.remove('hidden')
+                    s.menuBody = document.querySelector('.menu-body:not(.hidden)')
+                    s.menu.querySelector('.create-menu-group').classList.add('hidden')
+                }
+                MenuMaker.setGridDates()
             }
         },
 
@@ -808,7 +817,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}]
                 for (let x = 0; x < s.menuGridCells.length; x++) {
                     let cell = s.menuGridCells[x]
-                    let child = cell.firstElementChild
+                    let child = cell.querySelector('.menu-dish')
                     if (child) {
                         dishes[x].id = child.querySelector('.dish-id').innerText
                         dishes[x].title = child.querySelector('.dish-title').innerText
@@ -884,7 +893,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         s.dragItem.style.display = 'none'
                     }
                     else if (s.dropBox.classList.contains('grid-cell')) {
-                        MenuMaker.insertChildAtIndex(s.dragItem, s.dropBox, 0)
+                        MenuMaker.insertChildAtIndex(s.dragItem, s.dropBox, 1)
                     }
                     else if (s.dropBox.classList.contains('table-items') || s.dropBox.classList.contains('table-group') ||
                             s.dropBox.classList.contains('menu-group') || s.dropBox.classList.contains('menu-body') || s.dropBox.classList.contains('archive-body')) {
@@ -1021,7 +1030,7 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         insertChildAtIndex: function(child, parent, index) {
             console.log(">> insertChildAtIndex")
-            if (!parent.children.length) {
+            if (!parent.children.length || index > parent.children.length) {
                 parent.appendChild(child)
             } else {
                 parent.insertBefore(child, parent.children[index])
@@ -1087,40 +1096,40 @@ document.addEventListener('DOMContentLoaded', function() {
             return 0
         },
 
-        // Updates visibility of grid dates
+        // Changes grid dates setting in session
         toggleGridDates: function() {
             console.log(">> toggleGridDates")
             s.session.settings.grid_dates = (s.session.settings.grid_dates + 1) % 2
-            let values = ['HIDDEN', 'VISIBLE']
-            let status = values[s.session.settings.grid_dates]
-            s.gridDatesSpan.innerText = status
-            s.menuGridDays.classList.toggle('hidden')
             MenuMaker.updateLocalStorage()
-            // Update cell numbers and dish height
-            let dishes = s.menuBodyGrid.querySelectorAll('.menu-dish')
-            if (status == 'VISIBLE') {
-                dishes.forEach(dish => dish.style.height = 'calc(100% - 1.5rem)' )
-                MenuMaker.fillGridDates()
-            } else {
-                dishes.forEach(dish => dish.style.height = '100%' )
-                s.menuGridCells.forEach(cell => {
-                    cell.childNodes.forEach(c => {
-                        if (c.nodeType === Node.TEXT_NODE) { c.remove() }
-                    })
-                })
-            }
+            MenuMaker.setGridDates()
         },
 
-        // Updates grid month
+        // Increments grid month in session
         updateGridMonth: function() {
             console.log(">> updateGridMonth")
             s.session.settings.grid_month = (s.session.settings.grid_month + 1) % 12
-            let values = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
-                'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
-            let status = values[s.session.settings.grid_month]
-            s.gridMonthSpan.innerText = status
             MenuMaker.updateLocalStorage()
-            MenuMaker.fillGridDates()
+            MenuMaker.setGridDates()
+        },
+
+        // Sets visibility of grid dates based on session
+        setGridDates: function() {
+            console.log(">> setGridDates")
+            // Update settings buttons
+            let status = ['HIDDEN', 'VISIBLE']
+            s.gridDatesSpan.innerText = status[s.session.settings.grid_dates]
+            let months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+                'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
+            s.gridMonthSpan.innerText = months[s.session.settings.grid_month]
+            // Set visibility of cell dates
+            if (s.session.settings.grid_dates == 1) {
+                s.menuGridDays.classList.remove('hidden')
+                MenuMaker.fillGridDates()
+            } else {
+                s.menuGridDays.classList.add('hidden')
+                let dates = s.menuBodyGrid.querySelectorAll('.cell-date')
+                dates.forEach(date => date.remove())
+            }
         },
 
         // Fills in numbers on calendar
@@ -1138,21 +1147,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
             for (let i = 0; i < s.menuGridCells.length; i++) {
                 let cell = s.menuGridCells[i]
+                let dish = cell.querySelector('.menu-dish') ||  null
+                let cellDate
                 if (i < firstDayOfMonth) {
-                    cell.innerText += i + prevMonthFirstVisible
-                    cell.style.color = 'grey'
+                    cellDate = i + prevMonthFirstVisible
                 } else if (i < firstDayOfMonth + daysInMonth) {
-                    cell.innerText += i - firstDayOfMonth + 1
-                    cell.style.color = 'white'
+                    cellDate = i - firstDayOfMonth + 1
                 } else {
-                    cell.innerText += i - firstDayOfMonth - daysInMonth + 1
-                    cell.style.color = 'grey'
+                    cellDate = i - firstDayOfMonth - daysInMonth + 1
                 }
+                cell.innerHTML = `<div class="cell-date">` + cellDate + `</div>`
+                if (dish) { cell.appendChild(dish) }
             }
         },
 
         // Returns number of days in specified month
         daysInMonth: function(month, year) {
+            month = month + 1
             return new Date(year, month, 0).getDate()
         },
 

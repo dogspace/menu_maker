@@ -734,6 +734,9 @@ body {
         background-color: hsla(0, 0%, 100%, 0.07);
         border-radius: 0.25rem;
         cursor: pointer;
+
+        display: flex;
+        flex-flow: column nowrap;
     }
 
     .grid-cell:hover {
@@ -752,7 +755,13 @@ body {
         display: none;
     }
 
-    .group-tag {
+    .cell-date {
+        height: 1rem;
+        color: var(--text1-50);
+        flex-grow: 0;
+    }
+
+    /* .group-tag {
         height: 2rem;
     }
 
@@ -760,7 +769,7 @@ body {
         line-height: 2rem;
         font-size: 1.25rem;
         cursor: pointer;
-    }
+    } */
 }
 
 .menu-body.hidden {
@@ -775,6 +784,7 @@ body {
     padding: 0.5rem;
     border-radius: 0.25rem;
     cursor: pointer;
+    color: var(--text1)
 }
 
 .menu-dish:hover {
@@ -797,7 +807,7 @@ body {
         height: 2rem;
         width: 3rem;
         line-height: 2rem;
-        opacity: 60%;
+        color: var(--text1-50);
         overflow: hidden;
     }
     
@@ -852,8 +862,8 @@ body {
     .menu-dish {
         display: flex;
         flex-flow: column nowrap;
-        height: 100%;
         width: 100%;
+        flex-grow: 1;
     }
 
     .dish-info {
@@ -866,7 +876,7 @@ body {
         height: 1.5rem;
         width: 100%;
         line-height: 1.5rem;
-        opacity: 60%;
+        color: var(--text1-50);
         overflow: hidden;
     }
     
