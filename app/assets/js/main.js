@@ -63,6 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'menuBodyGrid': document.querySelector('.menu-body.grid'),
             'menuGridCells': document.querySelectorAll('.menu-body.grid .grid-cell'),
             'menuGridDays': document.querySelector('.menu-body.grid .grid-days'),
+            'printMenuButton': document.querySelector('.print-menu'),
             'createMenuGroupButtons': document.querySelectorAll('.create-menu-group'),
             'menuButton': document.querySelector('.menu-button'),
             //
@@ -121,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
             s.tableInputs.forEach(input => { input.addEventListener('keydown', MenuMaker.checkKeypress, true) })
             s.createTableGroupButtons.forEach(button => { button.addEventListener('click', MenuMaker.createNewTableGroup) })
             s.createMenuGroupButtons.forEach(button => { button.addEventListener('click', MenuMaker.createNewMenuGroup) })
+            s.printMenuButton.addEventListener('click', MenuMaker.printMenu)
         },
 
         // Bind dynamic UI actions (called at init and after creating a new table/menu item)
@@ -1139,7 +1141,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let month = s.session.settings.grid_month
             let year = date.getFullYear()
             let daysInMonth = MenuMaker.daysInMonth(month, year)
-            let firstDayOfMonth = (new Date(year, month)).getDay() - 1
+            let firstDayOfMonth = (new Date(year, month)).getDay()
             let prevMonth = (month - 1) % 12
             let prevYear = prevMonth == 12 ? year - 1 : year
             let daysInPrevMonth = MenuMaker.daysInMonth(prevMonth, prevYear)
@@ -1151,12 +1153,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 let cellDate
                 if (i < firstDayOfMonth) {
                     cellDate = i + prevMonthFirstVisible
+                    cell.innerHTML = `<div class="cell-date off">` + cellDate + `</div>`
                 } else if (i < firstDayOfMonth + daysInMonth) {
                     cellDate = i - firstDayOfMonth + 1
+                    cell.innerHTML = `<div class="cell-date">` + cellDate + `</div>`
                 } else {
                     cellDate = i - firstDayOfMonth - daysInMonth + 1
+                    cell.innerHTML = `<div class="cell-date off">` + cellDate + `</div>`
                 }
-                cell.innerHTML = `<div class="cell-date">` + cellDate + `</div>`
                 if (dish) { cell.appendChild(dish) }
             }
         },
@@ -1165,6 +1169,12 @@ document.addEventListener('DOMContentLoaded', function() {
         daysInMonth: function(month, year) {
             month = month + 1
             return new Date(year, month, 0).getDate()
+        },
+
+        //
+        printMenu: function() {
+            console.log(">> printMenu")
+            return
         },
 
 
