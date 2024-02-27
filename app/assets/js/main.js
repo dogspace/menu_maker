@@ -82,6 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'cursorStart': {'x': 0, 'y': 0},
             'lastHover': '',
             'isHidden': false,
+            'existingDishItem': null,
+            'existingDishCell': null,
         },
 
         // Site init
@@ -298,9 +300,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     title = items
                     items = ''
                 }
-                let newItem = createElement.menuDishHTML(id, title, items)
-                let menuGroup = s.menuBody.querySelector('.menu-group.ungrouped')
-                menuGroup.insertAdjacentHTML('afterbegin', newItem)
+                // Check dish spawn setting and insert new dish
+                let newDish = createElement.menuDishHTML(id, title, items)
+                if (s.session.settings.dish_spawn == 0) {
+                    if (s.session.settings.menu_layout == 0) {
+                        let parent = s.menuBody.querySelector('.ungrouped')
+                        parent.insertAdjacentHTML('afterbegin', newDish)
+                    } else {
+                        let emptyCellIndex = MenuMaker.firstEmptyGridCell(0)
+                        let emptyCell = s.menuGridCells[emptyCellIndex]
+                        emptyCell.insertAdjacentHTML('beforeend', newDish)
+                    }
+                } else {
+                    let parent = s.archiveBody.querySelector('.ungrouped')
+                    parent.insertAdjacentHTML('afterbegin', newDish)
+                }
                 MenuMaker.deselectAllItems()
                 MenuMaker.cacheMenu()
                 MenuMaker.updateLocalStorage()
@@ -879,10 +893,10 @@ document.addEventListener('DOMContentLoaded', function() {
             s.dragClone.style.visibility = 'hidden'
             let hoverElement = document.elementFromPoint(event.clientX, event.clientY)
             if (!hoverElement) { return }
-            let hoverClasses = [...hoverElement.classList].join('')
+            //let hoverClasses = [...hoverElement.classList].join('')
             s.dragClone.style.visibility = 'visible'
-            if (s.lastHover !== hoverClasses) {
-                s.lastHover = hoverClasses
+            if (s.lastHover !== hoverElement) {
+                s.lastHover = hoverElement
                 s.dropBox = MenuMaker.getDropBox(hoverElement)
                 console.warn("DROPBOX:  ", s.dropBox)
                 let draggingOverDelete = false
@@ -896,6 +910,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     else if (s.dropBox.classList.contains('grid-cell')) {
                         MenuMaker.insertChildAtIndex(s.dragItem, s.dropBox, 1)
+                        // Check if a dish was recently moved, return to cell if clear
+                        if (s.existingDishCell && (s.existingDishCell != s.dropBox)) {
+                            MenuMaker.insertChildAtIndex(s.existingDishItem, s.existingDishCell, 1)
+                            s.existingDishItem = null
+                            s.existingDishCell = null
+                        }
+                        // If there is already a dish in the cell, move to archive, save moved dish and cell
+                        let currentDish = s.dropBox.querySelector('.menu-dish:not(.drag-item)')
+                        if (currentDish) {
+                            s.existingDishItem = currentDish
+                            s.existingDishCell = currentDish.parentElement
+                            MenuMaker.insertChildAtIndex(currentDish, s.archiveBody.querySelector('.ungrouped'), 0)
+                        }
                     }
                     else if (s.dropBox.classList.contains('table-items') || s.dropBox.classList.contains('table-group') ||
                             s.dropBox.classList.contains('menu-group') || s.dropBox.classList.contains('menu-body') || s.dropBox.classList.contains('archive-body')) {
@@ -948,8 +975,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                         }
                         MenuMaker.cacheTables()
-                    } else if (s.dragItem.classList.contains('menu-dish') ||s.dragItem.classList.contains('menu-group')) {
+                    } else if (s.dragItem.classList.contains('menu-dish') || s.dragItem.classList.contains('menu-group')) {
                         MenuMaker.cacheMenu()
+                        s.existingDishItem = null
+                        s.existingDishCell = null
                     }
                 }
                 s.dragged = false
@@ -1060,16 +1089,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return className.replaceAll(' ', '-')
         },
 
-        // Archives single dish, called from archive button
+        // Archives dish, deletes if already archived, called from archive button
         archiveDish: function(event) {
             console.log(">> archiveDish")
             let dish = event.target.closest('.menu-dish')
             if (s.menuBody.contains(dish)) {
-                let ungrouped = s.archiveBody.querySelector('.menu-group.ungrouped')
-                MenuMaker.insertChildAtIndex(dish, ungrouped, 0)
-                MenuMaker.cacheMenu()
-                MenuMaker.updateLocalStorage()
+                MenuMaker.insertChildAtIndex(dish, s.archiveBody.querySelector('.ungrouped'), 0)
+            } else {
+                dish.remove()
             }
+            MenuMaker.cacheMenu()
+            MenuMaker.updateLocalStorage()
         },
 
         // Moves menu dishes and groups to the archive
@@ -1089,13 +1119,19 @@ document.addEventListener('DOMContentLoaded', function() {
             MenuMaker.updateLocalStorage()
         },
 
-        // UNFINISHED UNFINISHED CURRENTLY UNUSED - WILL BE USED TO FIX GRID SWAP BUG
-        firstEmptyGridCell: function() {
+        // Returns index of element within parent
+        getElementIndex: function(element) {
+            return Array.from(element.parentNode.children).indexOf(element)
+        },
+
+        // Returns first empty grid cell found AFTER the provided start index 
+        firstEmptyGridCell: function(index) {
             console.log(">> firstEmptyGridCell")
-            s.menuGridCells.forEach(cell => {
-                if (cell.innerHTML.trim.length == 0) { return cell }
-            })
-            return 0
+            for (; index < s.menuGridCells.length; index++) {
+                let dish = s.menuGridCells[index].querySelector('.menu-dish')
+                if (!dish) { return index }
+            }
+            return null
         },
 
         // Changes grid dates setting in session
@@ -1174,7 +1210,14 @@ document.addEventListener('DOMContentLoaded', function() {
         //
         printMenu: function() {
             console.log(">> printMenu")
-            return
+            let w = window.open()
+            w.document.write('<html><head><link rel="stylesheet" href="assets/css/styles.css"></head><body>')
+            w.document.write(s.menu.innerHTML);
+            w.document.write('</body></html>');
+            w.document.close();
+            w.focus()
+            setTimeout(function(){ w.print() }, 1000)
+           //w.close()
         },
 
 
