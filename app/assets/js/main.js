@@ -17,16 +17,19 @@ document.addEventListener('DOMContentLoaded', function() {
             'editModeActive': false,
             'settingsButton': document.querySelector('.settings-icon'),
             'settingsMenu': document.querySelector('.settings-menu'),
+            'gridSettings': document.querySelector('.grid-settings'),
             'colorThemeButton': document.querySelector('.color-theme'),
             'colorThemeSpan': document.querySelector('.color-theme span'),
             'menuLayoutButton': document.querySelector('.menu-layout'),
             'menuLayoutSpan': document.querySelector('.menu-layout-span'),
+            'dishSpawnLocButton': document.querySelector('.dish-spawn-loc'),
+            'dishSpawnLocSpan': document.querySelector('.dish-spawn-loc span'),
             'gridDatesButton': document.querySelector('.grid-dates'),
             'gridDatesSpan': document.querySelector('.grid-dates-span'),
             'gridMonthButton': document.querySelector('.grid-month'),
             'gridMonthSpan': document.querySelector('.grid-month-span'),
-            'dishSpawnLocButton': document.querySelector('.dish-spawn-loc'),
-            'dishSpawnLocSpan': document.querySelector('.dish-spawn-loc span'),
+            'gridDblclickButton': document.querySelector('.grid-dblclick'),
+            'gridDblclickSpan': document.querySelector('.grid-dblclick-span'),
             'importDataButton': document.querySelector('.import-data'),
             'exportDataButton': document.querySelector('.export-data'),
             'deleteTablesButton': document.querySelector('.delete-tables'),
@@ -98,6 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
             MenuMaker.bindDynamicUIActions()
             MenuMaker.setColorTheme()
             MenuMaker.setMenuLayout()
+            MenuMaker.setGridDoubleClick()
         },
 
         // Bind Static UI actions (called at init)
@@ -109,9 +113,10 @@ document.addEventListener('DOMContentLoaded', function() {
             s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
             s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
             s.menuLayoutButton.addEventListener('click', MenuMaker.changeMenuLayout)
+            // s.dishSpawnLocButton.addEventListener('click', MenuMaker.setDishSpawn)
             s.gridDatesButton.addEventListener('click', MenuMaker.toggleGridDates)
             s.gridMonthButton.addEventListener('click', MenuMaker.updateGridMonth)
-            // s.dishSpawnLocButton.addEventListener('click', MenuMaker.setDishSpawn)
+            s.gridDblclickButton.addEventListener('click', MenuMaker.changeGridDoubleClick)
             s.importDataButton.addEventListener('click', MenuMaker.importData)
             s.exportDataButton.addEventListener('click', MenuMaker.exportData)
             // s.deleteTablesButton.addEventListener('click', MenuMaker.deleteAllTables)
@@ -134,6 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
             tableItems.forEach(item => { item.addEventListener('mousedown', MenuMaker.clickElement) })
             let menuDishes = document.querySelectorAll('.menu-dish')
             menuDishes.forEach(dish => { dish.addEventListener('mousedown', MenuMaker.clickElement) })
+            menuDishes.forEach(dish => { dish.addEventListener('dblclick', MenuMaker.doubleClickDish) })
             let groupNames = document.querySelectorAll('.group-name')
             groupNames.forEach(name => { name.addEventListener('mousedown', MenuMaker.clickElement) })
             let groupButtons = document.querySelectorAll('.group-control-button')
@@ -636,13 +642,14 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (!isHidden && s.session.settings.pin_archive == 1) {
                 s.archive.classList.add('hidden')
             }
-            // Update layout buttons and grid visibility
+            // Update settings buttons and grid visibility
             let months = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
                 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
             s.gridMonthSpan.innerText = months[s.session.settings.grid_month]
             let layout = ['LIST', 'GRID'][s.session.settings.menu_layout]
             s.menuLayoutSpan.innerText = layout
             if (layout == 'GRID') {
+                s.gridSettings.classList.remove('hidden')
                 if (s.menuBodyGrid.classList.contains('hidden')) {                
                     s.menuBodyList.classList.add('hidden')
                     s.menuBodyGrid.classList.remove('hidden')
@@ -650,6 +657,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     s.menu.querySelector('.create-menu-group').classList.add('hidden')
                 }
                 MenuMaker.setGridDates()
+            } else {
+                s.gridSettings.classList.add('hidden')
             }
         },
 
@@ -1105,16 +1114,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // Moves menu dishes and groups to the archive
         archiveMenu: function() {
             console.log(">> archiveMenu")
-            let groups = s.menuBody.querySelectorAll('.menu-group')
-            groups.forEach(group => {
-                if (group.classList.contains('ungrouped') && group.hasChildNodes()) {
-                    let ungrouped = s.archiveBody.querySelector('.menu-group.ungrouped')
-                    let dishes = group.querySelectorAll('.menu-dish')
-                    dishes.forEach(dish => { MenuMaker.insertChildAtIndex(dish, ungrouped, 0) })
-                } else {
-                    s.archiveBody.appendChild(group)
-                }
-            })
+            if (s.session.settings.menu_layout == 0) {
+                let groups = s.menuBody.querySelectorAll('.menu-group')
+                groups.forEach(group => {
+                    if (group.classList.contains('ungrouped') && group.hasChildNodes()) {
+                        let ungrouped = s.archiveBody.querySelector('.menu-group.ungrouped')
+                        let dishes = group.querySelectorAll('.menu-dish')
+                        dishes.forEach(dish => { MenuMaker.insertChildAtIndex(dish, ungrouped, 0) })
+                    } else {
+                        s.archiveBody.appendChild(group)
+                    }
+                })
+            } else {
+                let ungrouped = s.archiveBody.querySelector('.menu-group.ungrouped')
+                let dishes = s.menuBodyGrid.querySelectorAll('.menu-dish')
+                dishes.forEach(dish => { MenuMaker.insertChildAtIndex(dish, ungrouped, 0) })
+            }
             MenuMaker.cacheMenu()
             MenuMaker.updateLocalStorage()
         },
@@ -1219,6 +1234,29 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function(){ w.print() }, 1000)
            //w.close()
         },
+
+        // Changes grid double click to delete setting, updates session
+        changeGridDoubleClick: function() {
+            console.log(">> changeGridDoubleClick")
+            s.session.settings.grid_dblclick = (s.session.settings.grid_dblclick + 1) % 2
+            MenuMaker.updateLocalStorage()
+            MenuMaker.setGridDoubleClick()
+        },
+
+        // Sets grid double click setting based on session
+        setGridDoubleClick: function() {
+            console.log(">> setGridDoubleClick")
+            s.gridDblclickSpan.innerText = ['TRUE', 'FALSE'][s.session.settings.grid_dblclick]
+        },
+
+        // Archives dish if in grid and double click setting is active
+        doubleClickDish: function(event) {
+            console.log(">> doubleClickDish")
+            if (s.menuBodyGrid.contains(event.target) && s.session.settings.grid_dblclick == 0) {
+                MenuMaker.archiveDish(event)
+            }
+        },
+
 
 
     }

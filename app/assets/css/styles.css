@@ -131,10 +131,10 @@ body {
     flex-flow: column nowrap;
     justify-content: center;
     position: absolute;
-    height: 38rem;
     width: 21rem;
     top: 3rem;
     right: 0;
+    padding: 1rem 0;
     border-radius: 0.75rem;
     background-color: var(--popupBackground);
     transition: 0.2s;
@@ -144,6 +144,7 @@ body {
 
 .settings-menu.hidden {
     height: 0;
+    padding: 0
 }
 
 .settings-menu.hidden * {
@@ -186,6 +187,14 @@ body {
     background-color: #be9164;
 }
 
+.grid-settings {
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+.grid-settings.hidden {
+    display: none;
+}
 
 
 .controls {
@@ -920,27 +929,7 @@ body {
     }
     
     .dish-archive-button {
-        position: absolute;
-        top: 0.2rem;
-        right: 0.2rem;
-        height: 1.5rem;
-        width: 1.5rem;
-        cursor: auto;
-    }
-    
-    .dish-archive-button svg {
-        display: block;
-        height: 1.5rem;
-        width: 1.5rem;
-        margin: auto;
-        fill: red;
-        cursor: pointer;
-        fill: var(--popupBorder);
-        transition: fill 50ms linear;
-    }
-    
-    .dish-archive-button svg:hover {
-        fill: red;
+        display: none;
     }
 }
 
