@@ -17,6 +17,10 @@
     --placeholderText: #8E8E8E;
     --cellDate1: #8f3a3a;
     --cellDate2: #555555;
+
+    --tableMaxWidth: 20rem;
+    --tableMinWidth: 20rem;
+    --tableFlexShrink: 1;
 }
 
 * {
@@ -377,57 +381,28 @@ body {
 
 .tables {
     position: absolute;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
     height: calc(100% - 10rem);
     width: 100%;
     top: 10rem;
     left: 0;
+    padding: 0 0.5rem;
     overflow-y: hidden;
     overflow-x: auto;
     background-color: var(--background2);
 }
 
 .table {
-    position: absolute;
     display: inline-block;
     height: calc(100% - 4rem);
     max-height: calc(100% - 4rem);
-    width: 22rem;
-    top: 2rem;
-    margin: 0 2rem;
+    margin: 1rem 0.5rem 0 0.5rem;
     overflow-y: auto;
-}
-
-.table:nth-child(1) {
-    left: 0;
-}
-.table:nth-child(2) {
-    left: 24rem;
-}
-.table:nth-child(3) {
-    left: 48rem;
-}
-.table:nth-child(4) {
-    left: 72rem;
-}
-.table:nth-child(5) {
-    left: 96rem;
-}
-.table:nth-child(6) {
-    left: 120rem;
-}
-.table:nth-child(7) {
-    left: 144rem;
-}
-.table:nth-child(8) {
-    left: 168rem;
-}
-.table:nth-child(9) {
-    left: 192rem;
-}
-.table:nth-child(10) {
-    left: 216rem;
-    width: 24rem;
-    padding-right: 2rem;
+    min-width: var(--tableMinWidth);
+    max-width: var(--tableMaxWidth);
+    flex-shrink: var(--tableFlexShrink);
 }
 
 .table-header {
@@ -857,10 +832,11 @@ body {
         min-height: 2rem;
         max-height: 6rem;
         width: calc(100% - 4rem);
-        /* padding-left: 4rem; */
         line-height: 2rem;
         opacity: 80%;
+        overflow-x: hidden;
         overflow-y: auto;
+        overflow-wrap: break-word;
     }
     
     .dish-archive-button {
@@ -925,7 +901,9 @@ body {
         width: 100%;
         line-height: 1.5rem;
         opacity: 80%;
+        overflow-x: hidden;
         overflow-y: auto;
+        overflow-wrap: break-word;
     }
     
     .dish-archive-button {

@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'gridSettings': document.querySelector('.grid-settings'),
             'colorThemeButton': document.querySelector('.color-theme'),
             'colorThemeSpan': document.querySelector('.color-theme span'),
+            'tableWidthButton': document.querySelector('.table-width'),
+            'tableWidthSpan': document.querySelector('.table-width span'),
             'menuLayoutButton': document.querySelector('.menu-layout'),
             'menuLayoutSpan': document.querySelector('.menu-layout-span'),
             'dishSpawnLocButton': document.querySelector('.dish-spawn-loc'),
@@ -52,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function() {
             'tableTitles': document.querySelectorAll('.table-title'),
             'createTableGroupButtons': document.querySelectorAll('.create-table-group'),
             'tableInputs': document.querySelectorAll('.table-input'),
-            'tableOrder': ['_0', '_1', '_2', '_3', '_4', '_5', '_6', '_7', '_8', '_9'],
             // Menu
             'menuContainer': document.querySelector('.menu-container'),
             'menu': document.querySelector('.menu'),
@@ -100,6 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
             MenuMaker.bindStaticUIActions()
             MenuMaker.bindDynamicUIActions()
             MenuMaker.setColorTheme()
+            MenuMaker.setTableWidth()
             MenuMaker.setMenuLayout()
             MenuMaker.setGridDoubleClick()
         },
@@ -112,6 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             s.editModeButton.addEventListener('click', MenuMaker.toggleEditMode)
             s.settingsButton.addEventListener('click', MenuMaker.toggleSettingsMenu)
             s.colorThemeButton.addEventListener('click', MenuMaker.changeColorTheme)
+            s.tableWidthButton.addEventListener('click', MenuMaker.changeTableWidth)
             s.menuLayoutButton.addEventListener('click', MenuMaker.changeMenuLayout)
             // s.dishSpawnLocButton.addEventListener('click', MenuMaker.setDishSpawn)
             s.gridDatesButton.addEventListener('click', MenuMaker.toggleGridDates)
@@ -242,8 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let tableItems = table.querySelector('.table-items')
             tableItems.innerHTML += createElement.tableGroupHTML('New group', 'new-group')
             // Update session
-            let indexClass = table.classList[1]
-            let tableIndex = s.tableOrder.indexOf(indexClass)
+            let tableIndex = Array.from(s.tables).indexOf(table)
             let newGroupObject = {
                 "name": "New group",
                 "items": []
@@ -268,8 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
             MenuMaker.bindDynamicUIActions()
             // Update session
             let table = tableGroup.closest('.table')
-            let indexClass = table.classList[1]
-            let tableIndex = s.tableOrder.indexOf(indexClass)
+            let tableIndex = Array.from(s.tables).indexOf(table)
             s.session.tables[tableIndex].groups[0].items.unshift(text)
             MenuMaker.updateLocalStorage()
         },
@@ -546,6 +547,39 @@ document.addEventListener('DOMContentLoaded', function() {
         openArchive: function() {
             console.log(">> openArchive")
             s.archive.classList.toggle('hidden')
+        },
+
+        // Increments table width setting, updates session
+        changeTableWidth: function() {
+            console.log("changeTableWidth")
+            let width = (s.session.settings.table_width + 1) % 4
+            s.session.settings.table_width = width
+            MenuMaker.setTableWidth()
+            MenuMaker.updateLocalStorage()
+        },
+
+        // Sets table width based on session
+        setTableWidth: function() {
+            console.log("setTableWidth")
+            let width = ['SMALL', 'MEDIUM', 'LARGE', 'AUTO'][s.session.settings.table_width]
+            s.tableWidthSpan.innerText = width
+            if (width == 'SMALL') {
+                document.documentElement.style.setProperty('--tableMinWidth', '12rem')
+                document.documentElement.style.setProperty('--tableMaxWidth', '12rem')
+                document.documentElement.style.setProperty('--tableFlexShrink', '1')
+            } else if (width == 'MEDIUM') {
+                document.documentElement.style.setProperty('--tableMinWidth', '20rem')
+                document.documentElement.style.setProperty('--tableMaxWidth', '20rem')
+                document.documentElement.style.setProperty('--tableFlexShrink', '1')
+            } else if (width == 'LARGE') {
+                document.documentElement.style.setProperty('--tableMinWidth', '28rem')
+                document.documentElement.style.setProperty('--tableMaxWidth', '28rem')
+                document.documentElement.style.setProperty('--tableFlexShrink', '1')
+            } else if (width == 'AUTO') {
+                document.documentElement.style.setProperty('--tableMinWidth', '12rem')
+                document.documentElement.style.setProperty('--tableMaxWidth', '28rem')
+                document.documentElement.style.setProperty('--tableFlexShrink', '0')
+            }
         },
 
         // Increments color theme setting, updates session

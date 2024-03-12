@@ -47,6 +47,7 @@ const DEFAULT_SESSION = {
     ],
     "settings": {
         "color_theme": 0,
+        "table_width": 1,
         "menu_layout": 0,
         "dish_spawn": 0,
         "grid_dates": 0,
@@ -116,6 +117,7 @@ const DEFAULT_SESSION_TESTING = {
     ],
     "settings": {
         "color_theme": 0,
+        "table_width": 1,
         "menu_layout": 0,
         "dish_spawn": 0,
         "grid_dates": 0,
