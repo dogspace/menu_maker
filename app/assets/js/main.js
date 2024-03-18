@@ -122,9 +122,9 @@ document.addEventListener('DOMContentLoaded', function() {
             s.gridDblclickButton.addEventListener('click', MenuMaker.changeGridDoubleClick)
             s.importDataButton.addEventListener('click', MenuMaker.importData)
             s.exportDataButton.addEventListener('click', MenuMaker.exportData)
-            // s.deleteTablesButton.addEventListener('click', MenuMaker.deleteAllTables)
-            // s.deleteMenuButton.addEventListener('click', MenuMaker.deleteMenu)
-            // s.deleteArchiveButton.addEventListener('click', MenuMaker.deleteArchive)
+            s.deleteTablesButton.addEventListener('click', () => { MenuMaker.deleteTables(true) })
+            s.deleteMenuButton.addEventListener('click', () => { MenuMaker.deleteMenu(true) })
+            s.deleteArchiveButton.addEventListener('click', () => { MenuMaker.deleteArchive(true) })
             s.buildID.addEventListener('keydown', MenuMaker.checkKeypress, true)
             s.buildTitle.addEventListener('keydown', MenuMaker.checkKeypress, true)
             s.buildAdd.addEventListener('click', MenuMaker.createNewMenuDish)
@@ -716,13 +716,13 @@ document.addEventListener('DOMContentLoaded', function() {
             s.popupBody.contentEditable = true
             s.popupBody.style.cursor = 'text'
             MenuMaker.togglePopupBox(true)
-            //unfinished
         },
 
         //
         togglePopupBox: function(isImport) {
             console.log(">> togglePopupBox")
             s.popupContainer.classList.toggle('hidden')
+            // If popup was closed, remove event listeners
             if (s.popupContainer.classList.contains('hidden')) {
                 if (isImport) {
                     document.removeEventListener('click', MenuMaker.checkPopupClickImport, true)
@@ -730,6 +730,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     document.removeEventListener('click', MenuMaker.checkPopupClickExport, true)
                 }
+            // If opened, 
             } else {
                 if (isImport) {
                     document.addEventListener('click', MenuMaker.checkPopupClickImport, true)
@@ -745,8 +746,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> checkPopupClick")
             let target = event.target
             if (!s.popupBox.contains(target)) {
-                document.removeEventListener('click', MenuMaker.checkPopupClickImport, true)
-                MenuMaker.togglePopupBox()
+                MenuMaker.togglePopupBox(true)
             }
         },
 
@@ -758,7 +758,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let input = MenuMaker.reverseString(s.popupBody.innerText)
             let base64Regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/
             let dictRegex = /\{(.)+\}/g
-            
+            // Reverse input string, try to assign to newSession object
             if (base64Regex.test(input)) {
                 input = atob(input)
                 if (dictRegex.test(input)) {
@@ -768,17 +768,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     } catch { console.warn("INPUT MISSING KEYS or INVALID OBJECT") }
                 }
             }
-            
+            // Update session
             if (!isValid) {
                 s.popupWarning.innerText = 'INVALID INPUT'
             } else {
                 console.warn("checkPopupKeypress - Import unfinished")
                 s.popupWarning.innerText = 'VALID INPUT - UPADING SITE'
-                // s.session = newSession
-                // MenuMaker.wipeTablesAndMenus()
-                // MenuMaker.init()
-                // MenuMaker.updateLocalStorage()
-                // setTimeout(function() { s.popupOverlay.click() }, 2000)
+                s.sessionKeys.forEach(key => { s.session[key] = newSession[key] })
+                MenuMaker.deleteTables(false)
+                MenuMaker.deleteMenu(false)
+                MenuMaker.deleteArchive(false)
+                MenuMaker.updateLocalStorage()
+                MenuMaker.init()
+                setTimeout(function() { s.popupOverlay.click() }, 2000)
             }
         },
 
@@ -787,8 +789,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(">> checkPopupClick")
             let target = event.target
             if (!s.popupBox.contains(target)) {
-                document.removeEventListener('click', MenuMaker.checkPopupClickExport, true)
-                MenuMaker.togglePopupBox()
+                MenuMaker.togglePopupBox(false)
             } else {
                 navigator.clipboard.writeText(s.popupBody.innerText)
                 let bColor = document.documentElement.style.getPropertyValue('--popupBackground')
@@ -1291,6 +1292,53 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
 
+        // Deletes table elements
+        deleteTables: function(updateSession) {
+            console.log(">> deleteTables")
+            MenuMaker.deleteGroupHTML(s.tablesContainer.querySelectorAll('.table-group'))
+            s.tableTitles.forEach(title => { title.innerText = 'Table name' })
+            if (updateSession) {
+                MenuMaker.cacheTables()
+                MenuMaker.updateLocalStorage()
+            }
+        },
+
+        // Deletes menu elements
+        deleteMenu: function(updateSession) {
+            console.log(">> deleteMenu")
+            if (s.session.settings.menu_layout == 0) {
+                MenuMaker.deleteGroupHTML(s.menuBodyList.querySelectorAll('.menu-group'))
+            } else {
+                let dishes = s.menuBodyGrid.querySelectorAll('.menu-dish')
+                dishes.forEach(dish => { dish.remove() })
+            }
+            if (updateSession) {
+                MenuMaker.cacheMenu()
+                MenuMaker.updateLocalStorage()
+            }
+        },
+
+        // Deletes archive elements
+        deleteArchive: function(updateSession) {
+            console.log(">> deleteArchive")
+            MenuMaker.deleteGroupHTML(s.archiveBody.querySelectorAll('.menu-group'))
+            if (updateSession) {
+                MenuMaker.cacheMenu()
+                MenuMaker.updateLocalStorage()
+            }
+        },
+
+        // Deletes user-created groups and the dishes in ungrouped
+        deleteGroupHTML: function(groups) {
+            console.log(">> deleteGroupList")
+            groups.forEach(group => {
+                if (group.classList.contains('ungrouped')) {
+                    group.innerHTML = ''
+                } else {
+                    group.remove()
+                }
+            })
+        },
 
 
     }
