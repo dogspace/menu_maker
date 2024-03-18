@@ -97,12 +97,12 @@ document.addEventListener('DOMContentLoaded', function() {
             MenuMaker.setStorage()
             MenuMaker.setSession()
             console.log(s.session)
+            MenuMaker.setMenuLayout()
             MenuMaker.updateWithSessionData()
             MenuMaker.bindStaticUIActions()
             MenuMaker.bindDynamicUIActions()
             MenuMaker.setColorTheme()
             MenuMaker.setTableWidth()
-            MenuMaker.setMenuLayout()
             MenuMaker.setGridDoubleClick()
         },
 
@@ -693,6 +693,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 MenuMaker.setGridDates()
             } else {
                 s.gridSettings.classList.add('hidden')
+                if(s.menuBodyList.classList.contains('hidden')) {
+                    s.menuBodyGrid.classList.add('hidden')
+                    s.menuBodyList.classList.remove('hidden')
+                    s.menuBody = document.querySelector('.menu-body:not(.hidden)')
+                    s.menu.querySelector('.create-menu-group').classList.remove('hidden')
+                }
             }
         },
 
@@ -772,7 +778,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isValid) {
                 s.popupWarning.innerText = 'INVALID INPUT'
             } else {
-                console.warn("checkPopupKeypress - Import unfinished")
                 s.popupWarning.innerText = 'VALID INPUT - UPADING SITE'
                 s.sessionKeys.forEach(key => { s.session[key] = newSession[key] })
                 MenuMaker.deleteTables(false)
